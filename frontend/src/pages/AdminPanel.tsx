@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { useContracts } from "../hooks/useContracts";
-import { useTheme } from "../contexts/ThemeContext";
 import { useToast } from "../contexts/ToastContext";
 import { Card, SectionTitle, Input, Button, PageWrapper, TitleBar, FormRow, Divider } from '../components/ui/StyledComponents';
-import styled from 'styled-components';
 
 const AdminPanel: React.FC = () => {
   const { rwaToken, didIdentity, signer } = useContracts();
@@ -34,7 +32,11 @@ const AdminPanel: React.FC = () => {
       showToast("代幣發行成功！", "success");
       setMintAddress("");
     } catch (error: any) {
-      showToast(`發行失敗: ${error.message || error.toString()}`, "error");
+      if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+        showToast("您已拒絕 MetaMask 簽名", "error");
+      } else {
+        showToast(`發行失敗: ${error.message || error.toString()}`, "error");
+      }
     }
   };
 
@@ -62,7 +64,11 @@ const AdminPanel: React.FC = () => {
       showToast(`KYC ${status ? "通過" : "撤銷"} 成功！`, "success");
       setKycAddress("");
     } catch (error: any) {
-      showToast(`KYC 更新失敗: ${error.message || error.toString()}`, "error");
+      if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+        showToast("您已拒絕 MetaMask 簽名", "error");
+      } else {
+        showToast(`KYC 更新失敗: ${error.message || error.toString()}`, "error");
+      }
     }
   };
 
@@ -75,7 +81,11 @@ const AdminPanel: React.FC = () => {
       await tx.wait();
       showToast("當前用戶 KYC 設置成功！", "success");
     } catch (error: any) {
-      showToast(`KYC 設置失敗: ${error.message || error.toString()}`, "error");
+      if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+        showToast("您已拒絕 MetaMask 簽名", "error");
+      } else {
+        showToast(`KYC 設置失敗: ${error.message || error.toString()}`, "error");
+      }
     }
   };
 
@@ -83,7 +93,6 @@ const AdminPanel: React.FC = () => {
     <PageWrapper>
       <Card>
         <SectionTitle style={{ textAlign: 'center' }}>管理員面板</SectionTitle>
-        <Divider />
         <TitleBar>
           <h3>快速設置</h3>
         </TitleBar>
@@ -117,6 +126,7 @@ const AdminPanel: React.FC = () => {
             value={kycAddress}
             onChange={(e) => setKycAddress(e.target.value)}
             autoComplete="off"
+            style={{ flex: 1 }}
           />
           <Button onClick={() => handleSetKyc(true)} disabled={!kycAddress}>通過</Button>
           <Button onClick={() => handleSetKyc(false)} disabled={!kycAddress} variant="danger">撤銷</Button>

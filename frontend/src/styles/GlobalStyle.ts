@@ -11,15 +11,43 @@ export const GlobalStyle = createGlobalStyle`
     --space-5: 32px;
     --space-6: 48px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: ${({ theme }) => theme.background};
     color: ${({ theme }) => theme.text};
-    transition: background 0.3s, color 0.3s;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
   }
-  h1, h2, h3, h4, h5, h6 { color: ${({ theme }) => theme.text}; font-weight: 700; }
-  button { font-family: var(--font-sans); }
-  a { color: ${({ theme }) => theme.primary}; text-decoration: none; }
-  a:hover { text-decoration: underline; }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: ${({ theme }) => theme.text};
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  p {
+    margin-bottom: var(--space-3);
+  }
+
+  button {
+    font-family: var(--font-sans);
+    cursor: pointer;
+  }
+
+  a {
+    color: ${({ theme }) => theme.primary};
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
 `; 

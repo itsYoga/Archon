@@ -1,9 +1,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useContracts } from "../hooks/useContracts";
-import { useTheme } from "../contexts/ThemeContext";
 import { useToast } from "../contexts/ToastContext";
-import { Card, SectionTitle, Input, Button, AddressDisplay, PageWrapper } from '../components/ui/StyledComponents';
+import { Card, SectionTitle, Input, Button, AddressDisplay } from '../components/ui/StyledComponents';
 import styled from 'styled-components';
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid ${({ theme }) => theme.border};
+  margin: var(--space-4) 0;
+`;
 
 const UserDashboard: React.FC = () => {
   const { signer, userTokens, userKycStatus, loading, fetchUserAssets, transferToken } = useContracts();
@@ -71,71 +76,71 @@ const UserDashboard: React.FC = () => {
   };
 
   return (
-    <PageWrapper>
-      <Card>
-        <SectionTitle style={{ textAlign: 'center' }}>用戶資產面板</SectionTitle>
-        {userAddress && (
-          <UserInfo>
-            <div>
-              <Label>地址:</Label> <AddressDisplay>{userAddress}</AddressDisplay>
-            </div>
-            <div>
-              <Label>KYC 狀態:</Label>
-              <KycStatus verified={userKycStatus}>
-                {userKycStatus === null ? "載入中..." : userKycStatus ? "✅ 已驗證" : "❌ 未驗證"}
-              </KycStatus>
-            </div>
-          </UserInfo>
+    <Card>
+      <SectionTitle style={{ textAlign: 'center' }}>用戶資產面板</SectionTitle>
+      {userAddress && (
+        <UserInfo>
+          <div>
+            <Label>錢包地址:</Label> <AddressDisplay>{userAddress}</AddressDisplay>
+          </div>
+          <div>
+            <Label>KYC 狀態:</Label>
+            <KycStatus verified={userKycStatus}>
+              {userKycStatus === null ? "..." : userKycStatus ? "✅ 已驗證" : "❌ 未驗證"}
+            </KycStatus>
+          </div>
+        </UserInfo>
+      )}
+      <Divider />
+      <AssetSection>
+        <AssetHeader>
+          <h3>我的資產</h3>
+          <Button onClick={handleRefresh} disabled={loading}>
+            {loading ? "載入中..." : "重新整理"}
+          </Button>
+        </AssetHeader>
+        {loading ? (
+          <LoadingState>載入中...</LoadingState>
+        ) : userTokens.length > 0 ? (
+          <div>
+            <p>持有 <b>{userTokens.length}</b> 個 RWA 代幣：</p>
+            <TransferInputWrapper>
+              <Input
+                type="text"
+                placeholder="轉帳目標地址"
+                value={transferAddress}
+                onChange={(e) => setTransferAddress(e.target.value)}
+                autoComplete="off"
+              />
+            </TransferInputWrapper>
+            <TokenList>
+              {userTokens.map((token, index) => (
+                <TokenItem key={index}>
+                  <span>代幣 ID: <b>{token.tokenId}</b></span>
+                  <Button
+                    onClick={() => handleTransfer(token.tokenId)}
+                    disabled={!transferAddress.trim()}
+                  >
+                    轉帳
+                  </Button>
+                </TokenItem>
+              ))}
+            </TokenList>
+          </div>
+        ) : (
+          <EmptyState>（這裡會顯示用戶持有的 RWA 代幣）</EmptyState>
         )}
-        <AssetSection>
-          <AssetHeader>
-            <h3>我的資產</h3>
-            <Button onClick={handleRefresh} disabled={loading}>
-              {loading ? "載入中..." : "重新整理"}
-            </Button>
-          </AssetHeader>
-          {loading ? (
-            <LoadingState>載入中...</LoadingState>
-          ) : userTokens.length > 0 ? (
-            <div>
-              <p>持有 <b>{userTokens.length}</b> 個 RWA 代幣：</p>
-              <TransferInputWrapper>
-                <Input
-                  type="text"
-                  placeholder="轉帳目標地址"
-                  value={transferAddress}
-                  onChange={(e) => setTransferAddress(e.target.value)}
-                  autoComplete="off"
-                />
-              </TransferInputWrapper>
-              <TokenList>
-                {userTokens.map((token, index) => (
-                  <TokenItem key={index}>
-                    <span>代幣 ID: <b>{token.tokenId}</b></span>
-                    <Button
-                      onClick={() => handleTransfer(token.tokenId)}
-                      disabled={!transferAddress.trim()}
-                    >
-                      轉帳
-                    </Button>
-                  </TokenItem>
-                ))}
-              </TokenList>
-            </div>
-          ) : (
-            <EmptyState>（這裡會顯示用戶持有的 RWA 代幣）</EmptyState>
-          )}
-        </AssetSection>
-        <KycSection>
-          <h3>身份驗證（KYC）</h3>
-          {userKycStatus ? (
-            <KycVerified>✅ 您已通過 KYC 驗證</KycVerified>
-          ) : (
-            <Button>申請 KYC</Button>
-          )}
-        </KycSection>
-      </Card>
-    </PageWrapper>
+      </AssetSection>
+      <Divider />
+      <KycSection>
+        <h3>身份驗證（KYC）</h3>
+        {userKycStatus ? (
+          <KycVerified>✅ 您已通過 KYC 驗證</KycVerified>
+        ) : (
+          <Button>申請 KYC</Button>
+        )}
+      </KycSection>
+    </Card>
   );
 };
 
@@ -200,7 +205,11 @@ const EmptyState = styled.div`
   color: ${({ theme }) => theme.textSecondary};
 `;
 
-const KycSection = styled.section``;
+const KycSection = styled.section`
+  & > button {
+    margin-top: var(--space-3);
+  }
+`;
 
 const KycVerified = styled.div`
   color: ${({ theme }) => theme.success};

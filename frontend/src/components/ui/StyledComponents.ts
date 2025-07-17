@@ -21,6 +21,8 @@ export const Card = styled.div`
   width: 100%;
   border: 1px solid ${({ theme }) => theme.border};
   transition: all 0.3s;
+  margin-left: auto;
+  margin-right: auto;
   @media (max-width: 600px) {
     padding: var(--space-4) var(--space-2);
     margin-top: 16px;
