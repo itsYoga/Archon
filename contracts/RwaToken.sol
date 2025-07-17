@@ -43,6 +43,12 @@ contract RwaToken is ERC721 {
         return _owner;
     }
 
+    // 新增 owner 轉移功能
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "New owner is the zero address");
+        _owner = newOwner;
+    }
+
     // 簡化的 tokenOfOwnerByIndex 實現
     function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256) {
         require(index < balanceOf(owner), "Index out of bounds");

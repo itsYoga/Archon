@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 
 // 合約地址（從部署腳本輸出）
-const DID_IDENTITY_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-const RWA_TOKEN_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+const DID_IDENTITY_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+const RWA_TOKEN_ADDRESS = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512";
 
 // 簡化的合約 ABI（只包含需要的函數）
 const DID_IDENTITY_ABI = [
@@ -66,6 +66,19 @@ export const useContracts = () => {
     };
 
     initContracts();
+
+    // 監聽帳戶切換，自動刷新頁面
+    if (window.ethereum) {
+      const handleAccountsChanged = () => {
+        window.location.reload();
+      };
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      return () => {
+        if (window.ethereum && window.ethereum.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
+    }
   }, []);
 
   // 查詢用戶資產

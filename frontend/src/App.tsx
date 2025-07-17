@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { WalletConnector } from "./components/WalletConnector";
 import UserDashboard from "./pages/UserDashboard";
@@ -9,6 +9,7 @@ import { Button } from './components/ui/StyledComponents';
 import ThemeToggle from './components/ThemeToggle';
 import { ToastProvider } from "./contexts/ToastContext";
 import { ThemeProvider as CustomThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { useContracts } from "./hooks/useContracts";
 
 const AppContainer = styled.div`
   display: flex;
@@ -62,6 +63,25 @@ const AppContent = () => {
   const [activeTab, setActiveTab] = useState<"user" | "admin">("user");
   const { theme } = useTheme();
   const themeObj = theme === 'light' ? lightTheme : darkTheme;
+  const { rwaToken, signer } = useContracts();
+  const [ownerAddress, setOwnerAddress] = useState<string | null>(null);
+  const [currentAddress, setCurrentAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOwner = async () => {
+      if (rwaToken && signer) {
+        try {
+          const owner = await rwaToken.owner();
+          setOwnerAddress(owner);
+          const current = await signer.getAddress();
+          setCurrentAddress(current);
+        } catch (e) {}
+      }
+    };
+    fetchOwner();
+  }, [rwaToken, signer]);
+
+  const isOwner = ownerAddress && currentAddress && ownerAddress.toLowerCase() === currentAddress.toLowerCase();
 
   return (
     <StyledThemeProvider theme={themeObj}>
@@ -74,12 +94,14 @@ const AppContent = () => {
           <TabButton onClick={() => setActiveTab("user")} $isActive={activeTab === 'user'}>
             用戶面板
           </TabButton>
-          <TabButton onClick={() => setActiveTab("admin")} $isActive={activeTab === 'admin'}>
-            管理員面板
-          </TabButton>
+          {isOwner && (
+            <TabButton onClick={() => setActiveTab("admin")} $isActive={activeTab === 'admin'}>
+              管理員面板
+            </TabButton>
+          )}
         </TabNavigation>
         <MainContent>
-          {activeTab === "user" ? <UserDashboard /> : <AdminPanel />}
+          {activeTab === "user" ? <UserDashboard /> : isOwner ? <AdminPanel /> : null}
         </MainContent>
       </AppContainer>
     </StyledThemeProvider>
