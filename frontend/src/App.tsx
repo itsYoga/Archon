@@ -2,63 +2,58 @@ import React, { useState } from "react";
 import { WalletConnector } from "./components/WalletConnector";
 import UserDashboard from "./pages/UserDashboard";
 import AdminPanel from "./pages/AdminPanel";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeProvider as CustomThemeProvider, useTheme } from "./contexts/ThemeContext";
 import ThemeToggle from "./components/ThemeToggle";
 import { ToastProvider } from "./contexts/ToastContext";
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
+import { GlobalStyle } from './styles/GlobalStyle';
+import { lightTheme, darkTheme } from './styles/theme';
+import { Button } from './components/ui/StyledComponents';
 
-function App() {
+const AppContent = () => {
   const [activeTab, setActiveTab] = useState<"user" | "admin">("user");
+  const { theme } = useTheme();
+  const themeObj = theme === 'light' ? lightTheme : darkTheme;
 
   return (
+    <StyledThemeProvider theme={themeObj}>
+      <GlobalStyle />
+      <ThemeToggle />
+      <WalletConnector />
+      {activeTab === "user" ? <UserDashboard /> : <AdminPanel />}
+      <div style={{
+        position: "fixed",
+        bottom: "20px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        gap: "10px"
+      }}>
+        <Button
+          onClick={() => setActiveTab("user")}
+          variant={activeTab === "user" ? "primary" : undefined}
+          style={{ opacity: activeTab === "user" ? 1 : 0.7 }}
+        >
+          用戶面板
+        </Button>
+        <Button
+          onClick={() => setActiveTab("admin")}
+          variant={activeTab === "admin" ? "primary" : undefined}
+          style={{ opacity: activeTab === "admin" ? 1 : 0.7 }}
+        >
+          管理員面板
+        </Button>
+      </div>
+    </StyledThemeProvider>
+  );
+};
+
+function App() {
+  return (
     <ToastProvider>
-      <ThemeProvider>
-        <div style={{ minHeight: "100vh" }}>
-          <ThemeToggle />
-          <WalletConnector />
-          {activeTab === "user" ? (
-            <UserDashboard />
-          ) : (
-            <AdminPanel />
-          )}
-          <div style={{
-            position: "fixed",
-            bottom: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            gap: "10px"
-          }}>
-            <button
-              onClick={() => setActiveTab("user")}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "8px",
-                border: "none",
-                background: activeTab === "user" ? "#2d72d9" : "#e1e5e9",
-                color: activeTab === "user" ? "#fff" : "#333",
-                cursor: "pointer",
-                fontWeight: 600
-              }}
-            >
-              用戶面板
-            </button>
-            <button
-              onClick={() => setActiveTab("admin")}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "8px",
-                border: "none",
-                background: activeTab === "admin" ? "#2d72d9" : "#e1e5e9",
-                color: activeTab === "admin" ? "#fff" : "#333",
-                cursor: "pointer",
-                fontWeight: 600
-              }}
-            >
-              管理員面板
-            </button>
-          </div>
-        </div>
-      </ThemeProvider>
+      <CustomThemeProvider>
+        <AppContent />
+      </CustomThemeProvider>
     </ToastProvider>
   );
 }

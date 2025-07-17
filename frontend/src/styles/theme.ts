@@ -32,4 +32,10 @@ export const darkTheme = {
   buttonDisabled: '#666666',
 };
 
-export type Theme = typeof lightTheme; 
+export type Theme = typeof lightTheme;
+
+// styled-components DefaultTheme 型別擴充，解決 theme 屬性紅線
+import 'styled-components';
+declare module 'styled-components' {
+  export interface DefaultTheme extends Theme {}
+} 

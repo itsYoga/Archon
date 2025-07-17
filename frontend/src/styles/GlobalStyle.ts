@@ -1,0 +1,25 @@
+import { createGlobalStyle } from 'styled-components';
+
+export const GlobalStyle = createGlobalStyle`
+  :root {
+    --font-sans: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    --font-mono: 'Fira Code', 'Roboto Mono', monospace;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 16px;
+    --space-4: 24px;
+    --space-5: 32px;
+    --space-6: 48px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background-color: ${({ theme }) => theme.background};
+    color: ${({ theme }) => theme.text};
+    transition: background 0.3s, color 0.3s;
+  }
+  h1, h2, h3, h4, h5, h6 { color: ${({ theme }) => theme.text}; font-weight: 700; }
+  button { font-family: var(--font-sans); }
+  a { color: ${({ theme }) => theme.primary}; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+`; 
