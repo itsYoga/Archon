@@ -1,13 +1,13 @@
 <!-- LOGO -->
 <p align="center">
-  <img src="./Archon.png" alt="Archon Logo" width="120" />
+  <img src="./frontend/src/assets/Archon.png" alt="Archon Logo" width="120" />
 </p>
 
 <h1 align="center">Archon RWA Tokenization DApp</h1>
 
 <p align="center">
-  <img src="./screenshot1.png" alt="screenshot1" width="45%"/>
-  <img src="./screenshot2.png" alt="screenshot2" width="45%"/>
+  <img src="./frontend/src/assets/screenshot1.png" alt="screenshot1" width="45%"/>
+  <img src="./frontend/src/assets/screenshot2.png" alt="screenshot2" width="45%"/>
 </p>
 
 ---
