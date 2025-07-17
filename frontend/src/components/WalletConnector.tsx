@@ -2,48 +2,22 @@ import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useTheme } from "../contexts/ThemeContext";
 import { useToast } from "../contexts/ToastContext";
-import { lightTheme, darkTheme } from "../styles/theme";
+import { Card, Button, FlexRow, AddressDisplay } from "./ui/StyledComponents";
+import styled from "styled-components";
 
 export const WalletConnector: React.FC = () => {
   const [account, setAccount] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const { theme } = useTheme();
   const { showToast } = useToast();
-  const currentTheme = theme === 'light' ? lightTheme : darkTheme;
-
-  const containerStyle: React.CSSProperties = {
-    padding: "20px",
-    textAlign: "center",
-    background: currentTheme.cardBackground,
-    borderBottom: `1px solid ${currentTheme.border}`,
-    color: currentTheme.text,
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    padding: "10px 20px",
-    borderRadius: "8px",
-    border: "none",
-    background: currentTheme.primary,
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontWeight: 600,
-  };
-
-  const accountStyle: React.CSSProperties = {
-    fontFamily: "monospace",
-    color: currentTheme.text,
-    fontWeight: 600,
-  };
 
   useEffect(() => {
     checkConnection();
   }, []);
 
   const checkConnection = async () => {
-    if (window.ethereum) {
+    if ((window as any).ethereum) {
       try {
-        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" });
         if (accounts.length > 0) {
           setAccount(accounts[0]);
         }
@@ -54,14 +28,13 @@ export const WalletConnector: React.FC = () => {
   };
 
   const connectWallet = async () => {
-    if (!window.ethereum) {
+    if (!(window as any).ethereum) {
       showToast("請安裝 MetaMask!", "error");
       return;
     }
-
     setConnecting(true);
     try {
-      const accounts = await window.ethereum.request({
+      const accounts = await (window as any).ethereum.request({
         method: "eth_requestAccounts",
       });
       setAccount(accounts[0]);
@@ -79,25 +52,30 @@ export const WalletConnector: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <WalletBar>
       {account ? (
-        <div>
-          <span>已連接: </span>
-          <span style={accountStyle}>
-            {account.slice(0, 6)}...{account.slice(-4)}
-          </span>
-          <button
-            onClick={disconnectWallet}
-            style={{ ...buttonStyle, marginLeft: "10px", background: currentTheme.error }}
-          >
-            斷開連接
-          </button>
-        </div>
+        <FlexRow style={{ justifyContent: "space-between", width: "100%" }}>
+          <span>已連接:</span>
+          <AddressDisplay>{account.slice(0, 6)}...{account.slice(-4)}</AddressDisplay>
+          <Button onClick={disconnectWallet} variant="danger">斷開連接</Button>
+        </FlexRow>
       ) : (
-        <button onClick={connectWallet} style={buttonStyle} disabled={connecting}>
+        <Button onClick={connectWallet} disabled={connecting} style={{ width: "100%" }}>
           {connecting ? "連接中..." : "連接錢包"}
-        </button>
+        </Button>
       )}
-    </div>
+    </WalletBar>
   );
-}; 
+};
+
+const WalletBar = styled(Card)`
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 32px;
+  background: ${({ theme }) => theme.cardBackground};
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`; 

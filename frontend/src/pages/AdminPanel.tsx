@@ -2,64 +2,14 @@ import React, { useState } from "react";
 import { useContracts } from "../hooks/useContracts";
 import { useTheme } from "../contexts/ThemeContext";
 import { useToast } from "../contexts/ToastContext";
-import { lightTheme, darkTheme } from "../styles/theme";
+import { Card, SectionTitle, Input, Button, PageWrapper, TitleBar, FormRow, Divider } from '../components/ui/StyledComponents';
+import styled from 'styled-components';
 
 const AdminPanel: React.FC = () => {
   const { rwaToken, didIdentity, signer } = useContracts();
-  const { theme } = useTheme();
   const { showToast } = useToast();
   const [mintAddress, setMintAddress] = useState("");
   const [kycAddress, setKycAddress] = useState("");
-
-  const currentTheme = theme === 'light' ? lightTheme : darkTheme;
-
-  const cardStyle: React.CSSProperties = {
-    background: currentTheme.cardBackground,
-    borderRadius: 16,
-    boxShadow: currentTheme.shadow,
-    padding: 32,
-    marginBottom: 32,
-    maxWidth: 500,
-    marginLeft: "auto",
-    marginRight: "auto",
-    border: `1px solid ${currentTheme.border}`,
-  };
-
-  const sectionTitle: React.CSSProperties = {
-    fontSize: 20,
-    fontWeight: 600,
-    marginBottom: 16,
-    color: currentTheme.text,
-  };
-
-  const inputStyle: React.CSSProperties = {
-    padding: "10px 14px",
-    borderRadius: 8,
-    border: `1px solid ${currentTheme.inputBorder}`,
-    fontSize: 16,
-    marginRight: 8,
-    width: 280,
-    background: currentTheme.inputBackground,
-    color: currentTheme.text,
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    padding: "10px 20px",
-    borderRadius: 8,
-    border: "none",
-    background: currentTheme.primary,
-    color: "#fff",
-    fontWeight: 600,
-    fontSize: 16,
-    cursor: "pointer",
-    transition: "background 0.2s",
-  };
-
-  const buttonDisabled: React.CSSProperties = {
-    ...buttonStyle,
-    background: currentTheme.buttonDisabled,
-    cursor: "not-allowed",
-  };
 
   // 驗證以太坊地址格式
   const isValidAddress = (address: string) => {
@@ -130,68 +80,49 @@ const AdminPanel: React.FC = () => {
   };
 
   return (
-    <div style={{ background: currentTheme.background, minHeight: "100vh", padding: "40px 0" }}>
-      <div style={cardStyle}>
-        <h2 style={{ ...sectionTitle, textAlign: "center" }}>管理員面板</h2>
-        {/* 快速設置當前用戶 KYC */}
-        <section style={{ 
-          marginBottom: 32, 
-          padding: 16, 
-          backgroundColor: theme === 'light' ? '#f0f4fa' : '#3a3a3a', 
-          borderRadius: 12 
-        }}>
-          <h3 style={sectionTitle}>快速設置</h3>
-          <button onClick={handleSetCurrentUserKyc} style={buttonStyle}>
-            為當前用戶設置 KYC
-          </button>
-          {/* kycStatus 移除 */}
-        </section>
-        {/* Mint RWA */}
-        <section style={{ marginBottom: 32 }}>
-          <h3 style={sectionTitle}>發行 RWA 代幣</h3>
-          <form onSubmit={handleMint} style={{ display: "flex", alignItems: "center" }}>
-            <input
+    <PageWrapper>
+      <Card>
+        <SectionTitle style={{ textAlign: 'center' }}>管理員面板</SectionTitle>
+        <Divider />
+        <TitleBar>
+          <h3>快速設置</h3>
+        </TitleBar>
+        <FormRow>
+          <Button onClick={handleSetCurrentUserKyc}>為當前用戶設置 KYC</Button>
+        </FormRow>
+        <Divider />
+        <TitleBar>
+          <h3>發行 RWA 代幣</h3>
+        </TitleBar>
+        <form onSubmit={handleMint}>
+          <FormRow>
+            <Input
               type="text"
               placeholder="目標地址"
               value={mintAddress}
               onChange={(e) => setMintAddress(e.target.value)}
-              style={inputStyle}
+              autoComplete="off"
             />
-            <button type="submit" style={mintAddress ? buttonStyle : buttonDisabled} disabled={!mintAddress}>
-              Mint
-            </button>
-          </form>
-          {/* mintStatus 移除 */}
-        </section>
-        {/* KYC 管理 */}
-        <section>
-          <h3 style={sectionTitle}>KYC 狀態管理</h3>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <input
-              type="text"
-              placeholder="用戶地址"
-              value={kycAddress}
-              onChange={(e) => setKycAddress(e.target.value)}
-              style={inputStyle}
-            />
-            <button
-              onClick={() => handleSetKyc(true)}
-              disabled={!kycAddress}
-              style={kycAddress ? buttonStyle : buttonDisabled}
-            >
-              通過
-            </button>
-            <button
-              onClick={() => handleSetKyc(false)}
-              disabled={!kycAddress}
-              style={kycAddress ? { ...buttonStyle, background: currentTheme.error } : buttonDisabled}
-            >
-              撤銷
-            </button>
-          </div>
-        </section>
-      </div>
-    </div>
+            <Button type="submit" disabled={!mintAddress}>Mint</Button>
+          </FormRow>
+        </form>
+        <Divider />
+        <TitleBar>
+          <h3>KYC 狀態管理</h3>
+        </TitleBar>
+        <FormRow>
+          <Input
+            type="text"
+            placeholder="用戶地址"
+            value={kycAddress}
+            onChange={(e) => setKycAddress(e.target.value)}
+            autoComplete="off"
+          />
+          <Button onClick={() => handleSetKyc(true)} disabled={!kycAddress}>通過</Button>
+          <Button onClick={() => handleSetKyc(false)} disabled={!kycAddress} variant="danger">撤銷</Button>
+        </FormRow>
+      </Card>
+    </PageWrapper>
   );
 };
 

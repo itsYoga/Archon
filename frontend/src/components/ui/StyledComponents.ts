@@ -5,22 +5,26 @@ export const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: var(--space-6) var(--space-4);
   background: ${({ theme }) => theme.background};
 `;
 
 export const Card = styled.div`
   background: ${({ theme }) => theme.cardBackground};
-  border-radius: 20px;
+  border-radius: 24px;
   box-shadow: ${({ theme }) => theme.shadow};
   padding: var(--space-5);
+  margin-top: 48px;
   margin-bottom: var(--space-5);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 480px;
+  width: 100%;
   border: 1px solid ${({ theme }) => theme.border};
   transition: all 0.3s;
+  @media (max-width: 600px) {
+    padding: var(--space-4) var(--space-2);
+    margin-top: 16px;
+  }
 `;
 
 export const SectionTitle = styled.h2`
@@ -30,6 +34,39 @@ export const SectionTitle = styled.h2`
   color: ${({ theme }) => theme.text};
   border-bottom: 1px solid ${({ theme }) => theme.border};
   padding-bottom: var(--space-3);
+`;
+
+export const TitleBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+`;
+
+export const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid ${({ theme }) => theme.border};
+  margin: var(--space-4) 0;
+`;
+
+export const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+`;
+
+export const FlexCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+`;
+
+export const FormRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 `;
 
 export const Input = styled.input`
