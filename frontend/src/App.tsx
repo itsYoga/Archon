@@ -20,6 +20,20 @@ const AppContainer = styled.div`
   background-color: ${({ theme }) => theme.background};
 `;
 
+const LogoText = styled.div`
+  position: fixed;
+  top: 24px;
+  left: 32px;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: ${({ theme }) => theme.primary};
+  text-transform: uppercase;
+  z-index: 1200;
+  user-select: none;
+`;
+
 const MainContent = styled.main`
   width: 100%;
   max-width: 700px;
@@ -53,6 +67,7 @@ const AppContent = () => {
     <StyledThemeProvider theme={themeObj}>
       <GlobalStyle />
       <ThemeToggle />
+      <LogoText>Archon</LogoText>
       <AppContainer>
         <WalletConnector />
         <TabNavigation>
