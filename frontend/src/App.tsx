@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Web3Provider } from "./contexts/Web3Context";
 import Navigation from "./components/Navigation";
 import NetworkStatus from "./components/NetworkStatus";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import AssetRegistration from "./pages/AssetRegistration";
 import MyAssets from "./pages/MyAssets";
@@ -39,10 +40,22 @@ const AppContent = () => {
                 <Route path="/tokens" element={<TokenManagement />} />
                 <Route path="/asset/:id" element={<AssetDetails />} />
                 
-                {/* 管理端路由 */}
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/verification" element={<VerificationDashboard />} />
-                <Route path="/admin/redemption" element={<RedemptionManagement />} />
+                {/* 管理端路由 - 需要管理員權限 */}
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/verification" element={
+                  <ProtectedRoute requiredRole="VERIFIER">
+                    <VerificationDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/redemption" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <RedemptionManagement />
+                  </ProtectedRoute>
+                } />
               </Routes>
             </div>
           </main>

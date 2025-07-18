@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useWeb3 } from '../contexts/Web3Context';
 import { 
@@ -14,19 +14,58 @@ import {
   UserCircleIcon
 } from '@heroicons/react/24/outline';
 
-const navItems = [
+const userNavItems = [
   { name: 'Dashboard', path: '/', icon: HomeIcon },
   { name: 'Register Asset', path: '/register-asset', icon: PlusCircleIcon },
   { name: 'My Assets', path: '/my-assets', icon: CollectionIcon },
   { name: 'Tokens', path: '/tokens', icon: CurrencyDollarIcon },
+];
+
+const adminNavItems = [
   { name: 'Admin', path: '/admin', icon: CogIcon },
   { name: 'Verification', path: '/admin/verification', icon: CheckCircleIcon },
   { name: 'Redemption', path: '/admin/redemption', icon: RefreshIcon },
 ];
 
 const Navigation: React.FC = () => {
-  const { account, disconnect } = useWeb3();
+  const { account, disconnect, connect, isConnecting, contracts, isConnected } = useWeb3();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hasAdminRole, setHasAdminRole] = useState(false);
+  const [hasVerifierRole, setHasVerifierRole] = useState(false);
+
+  // Check user roles
+  useEffect(() => {
+    const checkRoles = async () => {
+      if (!isConnected || !account || !contracts.assetRegistry) {
+        setHasAdminRole(false);
+        setHasVerifierRole(false);
+        return;
+      }
+
+      try {
+        const adminRole = await contracts.assetRegistry.ADMIN_ROLE();
+        const verifierRole = await contracts.assetRegistry.VERIFIER_ROLE();
+        
+        const adminCheck = await contracts.assetRegistry.hasRole(adminRole, account);
+        const verifierCheck = await contracts.assetRegistry.hasRole(verifierRole, account);
+        
+        setHasAdminRole(adminCheck);
+        setHasVerifierRole(verifierCheck);
+      } catch (error) {
+        console.error('Error checking roles:', error);
+        setHasAdminRole(false);
+        setHasVerifierRole(false);
+      }
+    };
+
+    checkRoles();
+  }, [account, contracts, isConnected]);
+
+  // Combine navigation items based on user roles
+  const navItems = [
+    ...userNavItems,
+    ...(hasAdminRole || hasVerifierRole ? adminNavItems : [])
+  ];
 
   return (
     <>
@@ -113,7 +152,7 @@ const Navigation: React.FC = () => {
             </div>
           ) : (
             <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 mb-3">
                 <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                   <UserCircleIcon className="w-6 h-6 text-gray-500" />
                 </div>
@@ -122,6 +161,23 @@ const Navigation: React.FC = () => {
                   <p className="text-xs text-gray-500">Connect your wallet</p>
                 </div>
               </div>
+              <button
+                onClick={connect}
+                disabled={isConnecting}
+                className="w-full px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Connecting...
+                  </div>
+                ) : (
+                  'Connect Wallet'
+                )}
+              </button>
             </div>
           )}
         </div>
