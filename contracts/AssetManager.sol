@@ -69,7 +69,8 @@ contract AssetManager is AccessControlEnumerable {
     ) external returns (uint256) {
         require(supportedAssetTypes[assetType], "Asset type not supported");
         
-        // 登記資產
+        // 登記資產 - 直接調用 AssetRegistry 的 registerAsset
+        // 這樣 msg.sender 就是用戶地址，而不是 AssetManager 地址
         uint256 assetId = assetRegistry.registerAsset(
             assetType,
             externalAssetId,

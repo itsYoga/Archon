@@ -5,7 +5,7 @@ async function main() {
   const [signer] = await ethers.getSigners();
   
   // The address that needs ETH (your MetaMask account)
-  const recipientAddress = "0x5C7Ae89ef9EC589960c30F25b85beEA783826039"; // Your account
+  const recipientAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account 3
   
   // Send 100 ETH to the recipient
   const amount = ethers.parseEther("100");

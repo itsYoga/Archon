@@ -18,6 +18,16 @@ const AssetRegistration: React.FC = () => {
     metadata: ''
   });
 
+  // Generate unique asset ID when asset type or user changes
+  useEffect(() => {
+    if (formData.assetType && account) {
+      const timestamp = Date.now();
+      const userSuffix = account.slice(-4);
+      const uniqueId = `${formData.assetType}-${userSuffix}-${timestamp}`;
+      setFormData(prev => ({ ...prev, externalAssetId: uniqueId }));
+    }
+  }, [formData.assetType, account]);
+
   // 獲取支持的資產類型
   useEffect(() => {
     const fetchAssetTypes = async () => {
@@ -59,7 +69,7 @@ const AssetRegistration: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isConnected || !contracts.assetManager) {
+    if (!isConnected || !contracts.assetRegistry) {
       setError('Please connect your wallet first');
       return;
     }
@@ -76,7 +86,8 @@ const AssetRegistration: React.FC = () => {
       // Convert USD value to wei (assuming 18 decimals like ETH)
       const valueInWei = ethers.parseEther(formData.value.toString());
       
-      const tx = await contracts.assetManager.registerAssetWithValidation(
+      // Call AssetRegistry directly to ensure correct ownership
+      const tx = await contracts.assetRegistry!.registerAsset(
         formData.assetType,
         formData.externalAssetId,
         valueInWei,
@@ -247,7 +258,7 @@ const AssetRegistration: React.FC = () => {
           {/* External Asset ID */}
           <div>
             <label htmlFor="externalAssetId" className="block text-sm font-medium text-gray-700 mb-2">
-              External Asset ID *
+              Asset Identifier *
             </label>
             <input
               type="text"
@@ -256,11 +267,12 @@ const AssetRegistration: React.FC = () => {
               value={formData.externalAssetId}
               onChange={handleInputChange}
               required
-              placeholder="e.g., PROP-001, STOCK-AAPL-001"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Auto-generated unique identifier"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+              readOnly
             />
             <p className="mt-1 text-sm text-gray-500">
-              Unique identifier for your asset (e.g., property ID, stock symbol)
+              Unique identifier automatically generated for your asset
             </p>
           </div>
 
