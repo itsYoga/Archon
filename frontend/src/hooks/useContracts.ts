@@ -1,17 +1,30 @@
 import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
+import addresses from "../contracts/addresses.json";
+
+// 修正 window.ethereum 型別
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
 
 // 合約地址（從部署腳本輸出）
-const DID_IDENTITY_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
-const RWA_TOKEN_ADDRESS = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512";
+const RWA_TOKEN_ADDRESS = addresses.RWA_TOKEN_ADDRESS;
 
-// 簡化的合約 ABI（只包含需要的函數）
-const DID_IDENTITY_ABI = [
-  "function setKycStatus(address user, bool status) external",
-  "function isVerified(address user) public view returns (bool)",
-  "function admin() external view returns (address)"
+// 新增 IdentityRegistry 地址與 ABI
+const IDENTITY_REGISTRY_ADDRESS = addresses.IDENTITY_REGISTRY_ADDRESS;
+const IDENTITY_REGISTRY_ABI = [
+  "function DEFAULT_ADMIN_ROLE() view returns (bytes32)",
+  "function KYC_ADMIN_ROLE() view returns (bytes32)",
+  "function hasRole(bytes32,address) view returns (bool)",
+  "function registerIdentity(address user) external",
+  "function revokeIdentity(address user) external",
+  "function isVerified(address user) external view returns (bool)",
+  "function getRoleMember(bytes32, uint256) external view returns (address)"
 ];
 
+// 簡化的合約 ABI（只包含需要的函數）
 const RWA_TOKEN_ABI = [
   "function mint(address to) external",
   "function ownerOf(uint256 tokenId) public view returns (address)",
@@ -29,8 +42,8 @@ export interface TokenInfo {
 export const useContracts = () => {
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
-  const [didIdentity, setDidIdentity] = useState<ethers.Contract | null>(null);
   const [rwaToken, setRwaToken] = useState<ethers.Contract | null>(null);
+  const [identityRegistry, setIdentityRegistry] = useState<ethers.Contract | null>(null);
   const [userTokens, setUserTokens] = useState<TokenInfo[]>([]);
   const [userKycStatus, setUserKycStatus] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,29 +55,25 @@ export const useContracts = () => {
         try {
           const provider = new ethers.BrowserProvider(window.ethereum);
           setProvider(provider);
-          
           const signer = await provider.getSigner();
           setSigner(signer);
-          
-          const didIdentityContract = new ethers.Contract(
-            DID_IDENTITY_ADDRESS,
-            DID_IDENTITY_ABI,
-            signer
-          );
           const rwaTokenContract = new ethers.Contract(
             RWA_TOKEN_ADDRESS,
             RWA_TOKEN_ABI,
             signer
           );
-          
-          setDidIdentity(didIdentityContract);
+          const identityRegistryContract = new ethers.Contract(
+            IDENTITY_REGISTRY_ADDRESS,
+            IDENTITY_REGISTRY_ABI,
+            signer
+          );
           setRwaToken(rwaTokenContract);
+          setIdentityRegistry(identityRegistryContract);
         } catch (error) {
           console.error("Error initializing contracts:", error);
         }
       }
     };
-
     initContracts();
 
     // 監聽帳戶切換，自動刷新頁面
@@ -83,7 +92,7 @@ export const useContracts = () => {
 
   // 查詢用戶資產
   const fetchUserAssets = useCallback(async (userAddress: string) => {
-    if (!rwaToken || !didIdentity) return;
+    if (!rwaToken || !identityRegistry) return;
     
     setLoading(true);
     try {
@@ -104,45 +113,41 @@ export const useContracts = () => {
           console.error(`Error fetching token ${i}:`, error);
         }
       }
-      
       setUserTokens(tokens);
-      
       // 查詢 KYC 狀態
-      const kycStatus = await didIdentity.isVerified(userAddress);
+      const kycStatus = await identityRegistry.isVerified(userAddress);
       setUserKycStatus(kycStatus);
-      
     } catch (error) {
       console.error("Error fetching user assets:", error);
-      setUserTokens([]);
-      setUserKycStatus(false);
     } finally {
       setLoading(false);
     }
-  }, [rwaToken, didIdentity]);
+  }, [rwaToken, identityRegistry]);
 
-  // 轉帳功能
-  const transferToken = useCallback(async (tokenId: string, toAddress: string) => {
-    if (!rwaToken || !signer) return;
-    
+  // 查詢用戶 KYC 狀態
+  const fetchUserKycStatus = useCallback(async (userAddress: string) => {
+    if (!identityRegistry) return;
+
+    setLoading(true);
     try {
-      const tx = await rwaToken.transferFrom(await signer.getAddress(), toAddress, tokenId);
-      await tx.wait();
-      return true;
+      const isVerified = await identityRegistry.isVerified(userAddress);
+      setUserKycStatus(isVerified);
     } catch (error) {
-      console.error("Error transferring token:", error);
-      throw error;
+      console.error("Error fetching user KYC status:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [rwaToken, signer]);
+  }, [identityRegistry]);
 
-  return { 
-    provider, 
-    signer, 
-    didIdentity, 
-    rwaToken, 
-    userTokens, 
-    userKycStatus, 
-    loading, 
+  return {
+    provider,
+    signer,
+    rwaToken,
+    identityRegistry,
+    userTokens,
+    userKycStatus,
+    loading,
     fetchUserAssets,
-    transferToken
+    fetchUserKycStatus,
   };
-}; 
+};

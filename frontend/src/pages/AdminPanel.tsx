@@ -4,7 +4,7 @@ import { useToast } from "../contexts/ToastContext";
 import { Card, SectionTitle, Input, Button, PageWrapper, TitleBar, FormRow, Divider } from '../components/ui/StyledComponents';
 
 const AdminPanel: React.FC = () => {
-  const { rwaToken, didIdentity, signer } = useContracts();
+  const { rwaToken, signer, identityRegistry } = useContracts();
   const { showToast } = useToast();
   const [mintAddress, setMintAddress] = useState("");
   const [kycAddress, setKycAddress] = useState("");
@@ -34,10 +34,15 @@ const AdminPanel: React.FC = () => {
   };
   // 封裝管理員設置 KYC
   const handleSetKycForAdmin = async (address: string, status: boolean) => {
-    if (!didIdentity) return;
+    if (!identityRegistry) return;
     try {
       showToast('正在更新 KYC 狀態...', 'info');
-      const tx = await didIdentity.setKycStatus(address, status);
+      let tx;
+      if (status) {
+        tx = await identityRegistry.registerIdentity(address);
+      } else {
+        tx = await identityRegistry.revokeIdentity(address);
+      }
       await tx.wait();
       showToast(`KYC ${status ? '通過' : '撤銷'} 成功！`, 'success');
     } catch (error: any) {
@@ -45,6 +50,8 @@ const AdminPanel: React.FC = () => {
         showToast('您已拒絕 MetaMask 簽名', 'error');
       } else if (error.reason === 'Not admin' || error.message?.includes('Not admin')) {
         showToast('您不是管理員，無法執行此操作', 'error');
+      } else if (error.message?.includes('execution reverted') && error.message?.includes('no data present')) {
+        showToast('權限不足或操作條件不符，請確認管理員權限', 'error');
       } else {
         showToast(`KYC 更新失敗: ${error.message || error.toString()}`, 'error');
       }
@@ -53,19 +60,21 @@ const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     const fetchAdmin = async () => {
-      if (didIdentity && signer) {
+      if (identityRegistry && signer) {
         try {
-          const admin = await didIdentity.admin();
+          const adminRole = await identityRegistry.DEFAULT_ADMIN_ROLE();
+          const admin = await identityRegistry.getRoleMember(adminRole, 0);
           setAdminAddress(admin);
           const current = await signer.getAddress();
           setCurrentAddress(current);
         } catch (e) {
-          // 忽略錯誤
+          setAdminAddress(null);
+          setCurrentAddress(null);
         }
       }
     };
     fetchAdmin();
-  }, [didIdentity, signer]);
+  }, [identityRegistry, signer]);
 
   // 驗證以太坊地址格式
   const isValidAddress = (address: string) => {
@@ -103,11 +112,11 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleSetCurrentUserKyc = async () => {
-    if (!didIdentity || !signer) return;
+    if (!identityRegistry || !signer) return;
     try {
       const currentAddress = await signer.getAddress();
       showToast("正在為當前用戶設置 KYC...", "info");
-      const tx = await didIdentity.setKycStatus(currentAddress, true);
+      const tx = await identityRegistry.registerIdentity(currentAddress);
       await tx.wait();
       showToast("當前用戶 KYC 設置成功！", "success");
     } catch (error: any) {

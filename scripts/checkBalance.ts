@@ -1,23 +1,16 @@
 import { ethers } from "hardhat";
+import { RwaToken } from "../typechain-types"; // adjust path if needed
 
 async function main() {
-  const RwaToken = await ethers.getContractFactory("RwaToken");
-  const rwaToken = RwaToken.attach("0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9");
-  
-  const userAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-  const balance = await rwaToken.balanceOf(userAddress);
-  console.log("User balance:", balance.toString());
-  
-  // Check if user has any tokens
-  if (balance > 0) {
-    for (let i = 0; i < balance; i++) {
-      const tokenId = await rwaToken.tokenOfOwnerByIndex(userAddress, i);
-      console.log("Token ID:", tokenId.toString());
-    }
-  }
-}
+  const address = "YOUR_CONTRACT_ADDRESS";
+  const rwaToken = (await ethers.getContractAt("RwaToken", address)) as RwaToken;
+  const balance = await rwaToken.balanceOf("USER_ADDRESS");
+  console.log("Balance:", balance.toString());
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-}); 
+  // Example for ERC721:
+  // import { MyNFT } from "../typechain-types";
+  // const nft = (await ethers.getContractAt("MyNFT", address)) as MyNFT;
+  // const tokenId = await nft.tokenOfOwnerByIndex("USER_ADDRESS", 0);
+  // console.log("Token ID:", tokenId.toString());
+}
+main(); 

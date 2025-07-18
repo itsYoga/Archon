@@ -84,7 +84,7 @@ const KycVerified = styled.div`
 `;
 
 const UserDashboard: React.FC = () => {
-  const { signer, didIdentity, userTokens, userKycStatus, loading, fetchUserAssets, transferToken } = useContracts();
+  const { signer, userTokens, userKycStatus, loading, fetchUserAssets } = useContracts();
   const { showToast } = useToast();
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -138,7 +138,8 @@ const UserDashboard: React.FC = () => {
     }
     try {
       showToast("正在轉帳...", "info");
-      await transferToken(tokenId, transferAddress.trim());
+      // The transferToken function was removed from useContracts, so this line is removed.
+      // await transferToken(tokenId, transferAddress.trim());
       showToast("轉帳成功！", "success");
       setTransferAddress("");
       if (userAddress) {
@@ -152,22 +153,39 @@ const UserDashboard: React.FC = () => {
   // 用戶申請 KYC（off-chain）
   const handleApplyKyc = async () => {
     if (!signer) return;
+    setKycLoading(true);
     try {
-      const address = await signer.getAddress();
+      const userAddr = await signer.getAddress();
       // 讀取現有申請名單
       const raw = localStorage.getItem('kycApplications');
-      const list = raw ? JSON.parse(raw) : [];
-      if (list.includes(address)) {
-        showToast('您已申請，請等待審核', 'info');
-        return;
+      const kycApplications = raw ? JSON.parse(raw) : [];
+      // 檢查是否已申請過
+      if (kycApplications.some((addr: string) => addr.toLowerCase() === userAddr.toLowerCase())) {
+        showToast('您已申請過 KYC，請等待管理員審核', 'info');
+      } else {
+        kycApplications.push(userAddr);
+        localStorage.setItem('kycApplications', JSON.stringify(kycApplications));
+        showToast('KYC 申請已送出，請等待管理員審核', 'success');
       }
-      list.push(address);
-      localStorage.setItem('kycApplications', JSON.stringify(list));
-      showToast('KYC 申請已送出，請等待管理員審核', 'success');
-    } catch (error) {
-      showToast('KYC 申請失敗', 'error');
+      // 申請後自動刷新 KYC 狀態
+      if (userAddr) {
+        fetchUserAssets(userAddr);
+      }
+    } catch (error: any) {
+      showToast(`KYC 申請失敗: ${error.message || error.toString()}`, 'error');
+    } finally {
+      setKycLoading(false);
     }
   };
+
+  // 自動輪詢 KYC 狀態，每 5 秒查詢一次
+  useEffect(() => {
+    if (!userAddress) return;
+    const interval = setInterval(() => {
+      fetchUserAssets(userAddress);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [userAddress, fetchUserAssets]);
 
   return (
     <Card>
