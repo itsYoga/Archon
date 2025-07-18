@@ -16,13 +16,14 @@ import {
   PauseIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
+import { ethers } from "ethers";
 
 interface Asset {
   id: number;
   owner: string;
   assetType: string;
   assetId: string;
-  value: number;
+  value: string | bigint;
   metadata: string;
   status: number; // 0: PENDING, 1: VERIFIED, 2: REJECTED, 3: TOKENIZED, 4: REDEEMED
   createdAt: number;
@@ -59,6 +60,10 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null); // Track which action is loading
   const [activeTab, setActiveTab] = useState('overview');
+  const [showTokenizeModal, setShowTokenizeModal] = useState(false);
+  const [tokenizeAssetId, setTokenizeAssetId] = useState<number | null>(null);
+  const [tokenAmount, setTokenAmount] = useState<string>('');
+  const [tokenizeError, setTokenizeError] = useState<string | null>(null);
 
   const statusLabels = ['Pending', 'Verified', 'Rejected', 'Tokenized', 'Redeemed'];
   const statusColors = ['yellow', 'green', 'red', 'blue', 'gray'];
@@ -80,7 +85,7 @@ const AdminDashboard: React.FC = () => {
             owner: asset.owner,
             assetType: asset.assetType,
             assetId: asset.assetId,
-            value: Number(asset.value),
+            value: asset.value, // keep as string or BigInt
             metadata: asset.metadata,
             status: Number(asset.status),
             createdAt: Number(asset.createdAt),
@@ -118,7 +123,7 @@ const AdminDashboard: React.FC = () => {
       const pendingAssets = assetsData.filter(a => a.status === 0).length;
       const verifiedAssets = assetsData.filter(a => a.status === 1).length;
       const tokenizedAssets = assetsData.filter(a => a.status === 3).length;
-      const totalValue = assetsData.reduce((sum, asset) => sum + asset.value, 0);
+      const totalValue = assetsData.reduce((sum, asset) => sum + parseFloat(ethers.formatEther(asset.value)), 0);
       
       setStats({
         totalAssets,
@@ -158,17 +163,34 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Mark asset as tokenized
-  const markAsTokenized = async (assetId: number) => {
-    if (!contracts.assetRegistry) return;
-    
+  // Mark asset as tokenized with custom token amount
+  const openTokenizeModal = (assetId: number, defaultAmount: string) => {
+    setTokenizeAssetId(assetId);
+    setTokenAmount(defaultAmount);
+    setShowTokenizeModal(true);
+    setTokenizeError(null);
+  };
+  const closeTokenizeModal = () => {
+    setShowTokenizeModal(false);
+    setTokenizeAssetId(null);
+    setTokenAmount('');
+    setTokenizeError(null);
+  };
+  const handleTokenize = async () => {
+    if (!contracts.assetManager || !tokenizeAssetId) return;
+    if (!tokenAmount || isNaN(Number(tokenAmount)) || Number(tokenAmount) <= 0) {
+      setTokenizeError('Please enter a valid token amount');
+      return;
+    }
     try {
-      setActionLoading(assetId);
-      const tx = await contracts.assetRegistry.markAsTokenized(assetId);
-      await tx.wait(); // Wait for transaction confirmation
-      await loadData(); // Reload data
-    } catch (error) {
-      console.error('Error marking asset as tokenized:', error);
+      setActionLoading(tokenizeAssetId);
+      setTokenizeError(null);
+      const tx = await contracts.assetManager.tokenizeAsset(tokenizeAssetId, tokenAmount);
+      await tx.wait();
+      closeTokenizeModal();
+      await loadData();
+    } catch (error: any) {
+      setTokenizeError(error.message || 'Failed to tokenize asset');
     } finally {
       setActionLoading(null);
     }
@@ -290,7 +312,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">${(stats.totalValue / 1e18).toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
               </div>
             </div>
           </div>
@@ -418,7 +440,7 @@ const AdminDashboard: React.FC = () => {
                             <h5 className="text-lg font-medium text-gray-900">{asset.assetType}</h5>
                             <p className="text-sm text-gray-600">Asset ID: {asset.assetId}</p>
                             <p className="text-sm text-gray-600">Owner: {asset.owner}</p>
-                            <p className="text-sm text-gray-600">Value: ${(asset.value / 1e18).toFixed(2)}</p>
+                            <p className="text-sm text-gray-600">Value: ${ethers.formatEther(asset.value).toLocaleString()}</p>
                           </div>
                           <div className="flex space-x-2">
                             <button
@@ -572,7 +594,7 @@ const AdminDashboard: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.id}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset.assetType}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.owner}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${(asset.value / 1e18).toFixed(2)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ethers.formatEther(asset.value).toLocaleString()}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusColors[asset.status]}-100 text-${statusColors[asset.status]}-800`}>
                                 {statusLabels[asset.status]}
@@ -581,10 +603,11 @@ const AdminDashboard: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               {asset.status === 1 && (
                                 <button
-                                  onClick={() => markAsTokenized(asset.id)}
+                                  onClick={() => openTokenizeModal(asset.id, asset.value.toString())}
                                   className="text-blue-600 hover:text-blue-900"
+                                  disabled={actionLoading === asset.id}
                                 >
-                                  Mark Tokenized
+                                  Mark as Tokenized
                                 </button>
                               )}
                             </td>
@@ -599,6 +622,39 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      {showTokenizeModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4">Tokenize Asset</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Token Amount</label>
+              <input
+                type="number"
+                min="1"
+                value={tokenAmount}
+                onChange={e => setTokenAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            {tokenizeError && <div className="text-red-600 text-sm mb-2">{tokenizeError}</div>}
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={closeTokenizeModal}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTokenize}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={actionLoading !== null}
+              >
+                {actionLoading !== null ? 'Processing...' : 'Tokenize'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -239,4 +239,16 @@ contract AssetManager is AccessControlEnumerable {
             if (assetRegistry.isAssetTokenized(assetIds[i])) tokenized++;
         }
     }
+
+    /**
+     * @dev Admin: Tokenize a verified asset and mint a custom amount of tokens to the owner
+     */
+    function tokenizeAsset(uint256 assetId, uint256 tokenAmount) external onlyRole(ADMIN_ROLE) {
+        // Mark as tokenized
+        assetRegistry.markAsTokenized(assetId);
+        // Mint tokens
+        AssetRegistry.Asset memory asset = assetRegistry.getAsset(assetId);
+        rwaToken.mintTokensForAsset(assetId, tokenAmount, asset.owner);
+        emit CompleteAssetFlow(assetId, asset.assetType, tokenAmount);
+    }
 } 

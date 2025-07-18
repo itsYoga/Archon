@@ -36,11 +36,24 @@ async function main() {
   await assetManager.waitForDeployment();
   console.log("AssetManager deployed to:", assetManager.target);
 
-  // 5. 設置權限（部署後手動設置）
-  console.log("\n5. Permissions need to be set manually after deployment:");
-  console.log(`   - Grant ADMIN_ROLE to AssetManager (${assetManager.target}) in AssetRegistry`);
-  console.log(`   - Grant MINTER_ROLE to AssetManager (${assetManager.target}) in RwaToken`);
-  console.log(`   - Grant ADMIN_ROLE to AssetManager (${assetManager.target}) in RwaToken`);
+  // 5. 設置權限（自動設置）
+  console.log("\n5. Granting roles to AssetManager...");
+  // Get role hashes
+  const ADMIN_ROLE = await assetRegistry.ADMIN_ROLE();
+  const MINTER_ROLE = await rwaToken.MINTER_ROLE();
+  const RWA_ADMIN_ROLE = await rwaToken.ADMIN_ROLE();
+
+  // Grant ADMIN_ROLE to AssetManager in AssetRegistry
+  await (await assetRegistry.grantRole(ADMIN_ROLE, assetManager.target)).wait();
+  console.log(`   ✓ ADMIN_ROLE granted to AssetManager (${assetManager.target}) in AssetRegistry`);
+
+  // Grant MINTER_ROLE to AssetManager in RwaToken
+  await (await rwaToken.grantRole(MINTER_ROLE, assetManager.target)).wait();
+  console.log(`   ✓ MINTER_ROLE granted to AssetManager (${assetManager.target}) in RwaToken`);
+
+  // Grant ADMIN_ROLE to AssetManager in RwaToken
+  await (await rwaToken.grantRole(RWA_ADMIN_ROLE, assetManager.target)).wait();
+  console.log(`   ✓ ADMIN_ROLE granted to AssetManager (${assetManager.target}) in RwaToken`);
 
   // 6. 自動寫入地址到 frontend/src/contracts/addresses.json
   const addresses = {

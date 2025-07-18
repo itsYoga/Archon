@@ -11,6 +11,7 @@ import {
   ClockIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
+import { ethers } from "ethers";
 
 const MyAssets: React.FC = () => {
   const { account, isConnected, contracts } = useWeb3();
@@ -105,18 +106,25 @@ const MyAssets: React.FC = () => {
 
   // Stats: exclude rejected assets
   const getAssetStats = () => {
-    const nonRejected = assets.filter(a => a.status !== 2);
+    // Only include verified or tokenized assets in total value
+    const verifiedOrTokenized = assets.filter(a => a.status === 1 || a.status === 3);
     const stats = {
-      total: nonRejected.length,
-      pending: nonRejected.filter(a => a.status === 0).length,
-      verified: nonRejected.filter(a => a.status === 1).length,
+      total: assets.filter(a => a.status !== 2).length, // still show all except rejected for count
+      pending: assets.filter(a => a.status === 0).length,
+      verified: assets.filter(a => a.status === 1).length,
       rejected: assets.filter(a => a.status === 2 && !hiddenRejectedIds.includes(a.id)).length,
-      tokenized: nonRejected.filter(a => a.status === 3).length,
-      redeemed: nonRejected.filter(a => a.status === 4).length,
+      tokenized: assets.filter(a => a.status === 3).length,
+      redeemed: assets.filter(a => a.status === 4).length,
     };
-    const totalValue = nonRejected.reduce((sum, asset) => {
-      const assetValue = typeof asset.value === 'bigint' ? Number(asset.value) : Number(asset.value);
-      return sum + assetValue;
+    // Only sum value for verified or tokenized assets
+    const totalValue = verifiedOrTokenized.reduce((sum, asset) => {
+      let value = asset.value;
+      if (typeof value === 'bigint' || typeof value === 'string') {
+        value = ethers.formatEther(value);
+      } else {
+        value = ethers.formatEther(value.toString());
+      }
+      return sum + parseFloat(value);
     }, 0);
     const totalTokens = tokenBalances.reduce((sum, balance, idx) => {
       if (assets[idx] && assets[idx].status !== 2) {
@@ -373,7 +381,7 @@ const MyAssets: React.FC = () => {
                   </div>
                   <div className="mb-2">
                     <p className="text-sm text-gray-600">Value:</p>
-                    <p className="text-lg font-bold text-gray-900">${(Number(asset.value) / 1e18).toLocaleString()}</p>
+                    <p className="text-lg font-bold text-gray-900">${ethers.formatEther(asset.value).toLocaleString()}</p>
                   </div>
                   <div className="mb-2">
                     <p className="text-xs text-gray-500">Registered: {new Date(asset.createdAt * 1000).toLocaleDateString()}</p>

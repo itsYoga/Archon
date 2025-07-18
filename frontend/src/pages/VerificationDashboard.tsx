@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { Asset, VerificationForm } from '../types/web3';
+import { ethers } from "ethers";
 
 const VerificationDashboard: React.FC = () => {
   const { account, isConnected, contracts } = useWeb3();
@@ -237,7 +238,7 @@ const VerificationDashboard: React.FC = () => {
             <div className="ml-3 md:ml-4">
               <p className="text-xs md:text-sm font-medium text-gray-600">Total Value</p>
               <p className="text-xl md:text-2xl font-bold text-gray-900">
-                ${pendingAssets.reduce((sum, asset) => sum + Number(asset.value), 0).toLocaleString()}
+                ${pendingAssets.reduce((sum, asset) => sum + parseFloat(ethers.formatEther(asset.value)), 0).toLocaleString()}
               </p>
             </div>
           </div>
@@ -304,7 +305,7 @@ const VerificationDashboard: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="text-gray-600">Value:</span>
-                      <span className="ml-2 font-medium">${Number(asset.value).toLocaleString()}</span>
+                      <span className="ml-2 font-medium">${ethers.formatEther(asset.value).toLocaleString()}</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Owner:</span>
