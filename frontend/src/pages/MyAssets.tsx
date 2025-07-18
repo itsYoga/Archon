@@ -8,7 +8,8 @@ import {
   ChartBarIcon,
   CurrencyDollarIcon,
   CheckCircleIcon,
-  ClockIcon
+  ClockIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 const MyAssets: React.FC = () => {
@@ -18,18 +19,60 @@ const MyAssets: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [hiddenRejectedIds, setHiddenRejectedIds] = useState<number[]>([]);
 
   useEffect(() => {
     const fetchAssets = async () => {
-      if (!isConnected || !contracts.assetManager) {
+      if (!isConnected || !contracts.assetRegistry) {
         setLoading(false);
         return;
       }
 
       try {
-        const userAssetsData = await contracts.assetManager.getUserAssets(account);
-        setAssets(userAssetsData.assets || []);
-        setTokenBalances(userAssetsData.tokenBalances || []);
+        // Get user's asset IDs directly from AssetRegistry
+        const assetIds = await contracts.assetRegistry.getAssetsByOwner(account);
+        
+        if (assetIds.length === 0) {
+          setAssets([]);
+          setTokenBalances([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch each asset's details
+        const assetsData = await Promise.all(
+          assetIds.map(async (assetId: number) => {
+            const asset = await contracts.assetRegistry.getAsset(assetId);
+            return {
+              id: Number(asset.id),
+              owner: asset.owner,
+              assetType: asset.assetType,
+              assetId: asset.assetId,
+              value: asset.value,
+              metadata: asset.metadata,
+              status: Number(asset.status),
+              createdAt: Number(asset.createdAt),
+              verifiedAt: Number(asset.verifiedAt),
+              verifier: asset.verifier,
+              verificationProof: asset.verificationProof
+            };
+          })
+        );
+
+        // Get token balances for each asset
+        const tokenBalancesData = await Promise.all(
+          assetIds.map(async (assetId: number) => {
+            try {
+              const balance = await contracts.rwaToken.getTokensForAsset(assetId);
+              return Number(balance);
+            } catch (err) {
+              return 0; // No tokens for this asset
+            }
+          })
+        );
+
+        setAssets(assetsData);
+        setTokenBalances(tokenBalancesData);
       } catch (err) {
         console.error('Failed to fetch assets:', err);
         setError('Failed to load assets');
@@ -41,9 +84,15 @@ const MyAssets: React.FC = () => {
     fetchAssets();
   }, [isConnected, contracts, account]);
 
+  // Hide rejected asset (frontend only)
+  const handleDeleteRejected = (assetId: number) => {
+    setHiddenRejectedIds((prev) => [...prev, assetId]);
+  };
+
+  // Filtered assets for each tab
   const getFilteredAssets = () => {
-    if (filter === 'all') return assets;
-    
+    if (filter === 'all') return assets.filter(a => a.status !== 2); // Exclude rejected
+    if (filter === 'rejected') return assets.filter(a => a.status === 2 && !hiddenRejectedIds.includes(a.id));
     const statusMap: { [key: string]: number } = {
       'pending': 0,
       'verified': 1,
@@ -51,23 +100,31 @@ const MyAssets: React.FC = () => {
       'tokenized': 3,
       'redeemed': 4
     };
-    
     return assets.filter(asset => asset.status === statusMap[filter]);
   };
 
+  // Stats: exclude rejected assets
   const getAssetStats = () => {
+    const nonRejected = assets.filter(a => a.status !== 2);
     const stats = {
-      total: assets.length,
-      pending: assets.filter(a => a.status === 0).length,
-      verified: assets.filter(a => a.status === 1).length,
-      rejected: assets.filter(a => a.status === 2).length,
-      tokenized: assets.filter(a => a.status === 3).length,
-      redeemed: assets.filter(a => a.status === 4).length,
+      total: nonRejected.length,
+      pending: nonRejected.filter(a => a.status === 0).length,
+      verified: nonRejected.filter(a => a.status === 1).length,
+      rejected: assets.filter(a => a.status === 2 && !hiddenRejectedIds.includes(a.id)).length,
+      tokenized: nonRejected.filter(a => a.status === 3).length,
+      redeemed: nonRejected.filter(a => a.status === 4).length,
     };
-    
-    const totalValue = assets.reduce((sum, asset) => sum + Number(asset.value), 0);
-    const totalTokens = tokenBalances.reduce((sum, balance) => sum + balance, 0);
-    
+    const totalValue = nonRejected.reduce((sum, asset) => {
+      const assetValue = typeof asset.value === 'bigint' ? Number(asset.value) : Number(asset.value);
+      return sum + assetValue;
+    }, 0);
+    const totalTokens = tokenBalances.reduce((sum, balance, idx) => {
+      if (assets[idx] && assets[idx].status !== 2) {
+        const tokenBalance = typeof balance === 'bigint' ? Number(balance) : Number(balance);
+        return sum + tokenBalance;
+      }
+      return sum;
+    }, 0);
     return { ...stats, totalValue, totalTokens };
   };
 
@@ -257,50 +314,77 @@ const MyAssets: React.FC = () => {
                   }`}
                 >
                   <Icon className="w-4 h-4 mr-2" />
-                  {tab.label} ({tab.count})
+                  {tab.label}
+                  <span className="ml-2 text-xs font-semibold">{tab.count}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* Assets List */}
         <div className="p-6">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <div className="text-red-800 text-sm">{error}</div>
-            </div>
-          )}
-
           {filteredAssets.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ChartBarIcon className="w-12 h-12 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No assets found</h3>
-              <p className="text-gray-500 mb-6">
-                {filter === 'all' 
-                  ? "You haven't registered any assets yet."
-                  : `No ${filter} assets found.`
-                }
-              </p>
-              {filter === 'all' && (
-                <a
-                  href="/register-asset"
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-                >
-                  <PlusIcon className="w-5 h-5 mr-2" />
-                  Register Your First Asset
-                </a>
-              )}
+              <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No assets found</p>
+              <a
+                href="/register-asset"
+                className="mt-6 inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Register Your First Asset
+              </a>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAssets.map((asset, index) => (
-                <AssetCard
-                  key={asset.id}
-                  asset={asset}
-                  tokenAmount={tokenBalances[index]}
-                />
+              {filteredAssets.map((asset, idx) => (
+                <div key={asset.id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{asset.assetType}</h3>
+                      <p className="text-xs text-gray-500 font-mono">ID: {asset.assetId}</p>
+                    </div>
+                    {filter === 'rejected' && (
+                      <button
+                        onClick={() => handleDeleteRejected(asset.id)}
+                        className="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs"
+                      >
+                        <TrashIcon className="w-4 h-4 mr-1" />
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                  <div className="mb-2">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      asset.status === 0 ? 'bg-yellow-100 text-yellow-800' :
+                      asset.status === 1 ? 'bg-green-100 text-green-800' :
+                      asset.status === 2 ? 'bg-red-100 text-red-800' :
+                      asset.status === 3 ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {asset.status === 0 ? 'Pending' :
+                        asset.status === 1 ? 'Verified' :
+                        asset.status === 2 ? 'Rejected' :
+                        asset.status === 3 ? 'Tokenized' :
+                        asset.status === 4 ? 'Redeemed' :
+                        'Unknown'}
+                    </span>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-sm text-gray-600">Value:</p>
+                    <p className="text-lg font-bold text-gray-900">${(Number(asset.value) / 1e18).toLocaleString()}</p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500">Registered: {new Date(asset.createdAt * 1000).toLocaleDateString()}</p>
+                  </div>
+                  <a
+                    href={`/asset/${asset.id}`}
+                    className="mt-2 inline-block text-blue-600 hover:underline text-sm font-medium"
+                  >
+                    View Details
+                  </a>
+                </div>
               ))}
             </div>
           )}

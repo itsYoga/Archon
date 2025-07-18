@@ -13,7 +13,8 @@ import {
   CheckIcon,
   XMarkIcon,
   PlayIcon,
-  PauseIcon
+  PauseIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 interface Asset {
@@ -56,6 +57,7 @@ const AdminDashboard: React.FC = () => {
   });
   const [isTokenPaused, setIsTokenPaused] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<number | null>(null); // Track which action is loading
   const [activeTab, setActiveTab] = useState('overview');
 
   const statusLabels = ['Pending', 'Verified', 'Rejected', 'Tokenized', 'Redeemed'];
@@ -144,11 +146,15 @@ const AdminDashboard: React.FC = () => {
     if (!contracts.assetRegistry) return;
     
     try {
+      setActionLoading(assetId);
       const proof = isValid ? "Verified by admin" : "Rejected by admin";
-      await contracts.assetRegistry.verifyAsset(assetId, isValid, proof);
+      const tx = await contracts.assetRegistry.verifyAsset(assetId, isValid, proof);
+      await tx.wait(); // Wait for transaction confirmation
       await loadData(); // Reload data
     } catch (error) {
       console.error('Error verifying asset:', error);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -157,10 +163,14 @@ const AdminDashboard: React.FC = () => {
     if (!contracts.assetRegistry) return;
     
     try {
-      await contracts.assetRegistry.markAsTokenized(assetId);
+      setActionLoading(assetId);
+      const tx = await contracts.assetRegistry.markAsTokenized(assetId);
+      await tx.wait(); // Wait for transaction confirmation
       await loadData(); // Reload data
     } catch (error) {
       console.error('Error marking asset as tokenized:', error);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -220,9 +230,19 @@ const AdminDashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage platform assets, verifications, and redemptions</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="mt-2 text-gray-600">Manage platform assets, verifications, and redemptions</p>
+          </div>
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
 
         {/* Stats Cards */}
@@ -403,17 +423,51 @@ const AdminDashboard: React.FC = () => {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => verifyAsset(asset.id, true)}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                              disabled={actionLoading === asset.id}
+                              className={`inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+                                actionLoading === asset.id 
+                                  ? 'bg-gray-400 cursor-not-allowed' 
+                                  : 'bg-green-600 hover:bg-green-700'
+                              }`}
                             >
-                              <CheckIcon className="h-4 w-4 mr-1" />
-                              Approve
+                              {actionLoading === asset.id ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckIcon className="h-4 w-4 mr-1" />
+                                  Approve
+                                </>
+                              )}
                             </button>
                             <button
                               onClick={() => verifyAsset(asset.id, false)}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                              disabled={actionLoading === asset.id}
+                              className={`inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+                                actionLoading === asset.id 
+                                  ? 'bg-gray-400 cursor-not-allowed' 
+                                  : 'bg-red-600 hover:bg-red-700'
+                              }`}
                             >
-                              <XMarkIcon className="h-4 w-4 mr-1" />
-                              Reject
+                              {actionLoading === asset.id ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <XMarkIcon className="h-4 w-4 mr-1" />
+                                  Reject
+                                </>
+                              )}
                             </button>
                           </div>
                         </div>

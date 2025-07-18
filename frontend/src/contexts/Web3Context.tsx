@@ -130,7 +130,6 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      
       // 檢查當前網絡
       const network = await provider.getNetwork();
       const currentChainId = Number(network.chainId);
@@ -142,36 +141,11 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         const newNetwork = await provider.getNetwork();
         setChainId(Number(newNetwork.chainId));
       }
-      
       // 請求連接
       const accounts = await provider.send('eth_requestAccounts', []);
       const connectedAccount = accounts[0];
-      
       setAccount(connectedAccount);
       await initializeContracts(provider);
-
-      // 監聽賬戶變更
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length === 0) {
-          // 用戶斷開連接
-          disconnect();
-        } else {
-          // 用戶切換賬戶
-          setAccount(accounts[0]);
-        }
-      });
-
-      // 監聽鏈變更
-      window.ethereum.on('chainChanged', (chainId: string) => {
-        const newChainId = parseInt(chainId, 16);
-        setChainId(newChainId);
-        if (!isSupportedNetwork(newChainId)) {
-          setError('Please switch to Hardhat Localhost network');
-        } else {
-          setError(null);
-        }
-      });
-
     } catch (err) {
       console.error('Failed to connect:', err);
       setError('Failed to connect to MetaMask');
@@ -191,6 +165,38 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     });
     setError(null);
   };
+
+  // Set up MetaMask event listeners once
+  useEffect(() => {
+    if (!window.ethereum) return;
+    // Account change handler
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        disconnect();
+      } else {
+        setAccount(accounts[0]);
+      }
+    };
+    // Chain change handler
+    const handleChainChanged = (chainIdHex: string) => {
+      const newChainId = parseInt(chainIdHex, 16);
+      setChainId(newChainId);
+      if (!isSupportedNetwork(newChainId)) {
+        setError('Please switch to Hardhat Localhost network');
+      } else {
+        setError(null);
+      }
+    };
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    window.ethereum.on('chainChanged', handleChainChanged);
+    // Cleanup
+    return () => {
+      if (window.ethereum.removeListener) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, []);
 
   // 檢查是否已連接
   useEffect(() => {
