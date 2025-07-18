@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import AssetCard from '../components/AssetCard';
-import { Asset } from '../types/web3';
+import type { Asset } from '../types/web3';
+import { 
+  FunnelIcon, 
+  PlusIcon,
+  ChartBarIcon,
+  CurrencyDollarIcon,
+  CheckCircleIcon,
+  ClockIcon
+} from '@heroicons/react/24/outline';
 
 const MyAssets: React.FC = () => {
   const { account, isConnected, contracts } = useWeb3();
@@ -69,6 +77,9 @@ const MyAssets: React.FC = () => {
   if (!isConnected) {
     return (
       <div className="text-center py-12">
+        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <ChartBarIcon className="w-12 h-12 text-gray-400" />
+        </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">My Assets</h2>
         <p className="text-gray-600 mb-8">Please connect your wallet to view your assets.</p>
       </div>
@@ -79,28 +90,28 @@ const MyAssets: React.FC = () => {
     return (
       <div className="space-y-8 animate-pulse">
         {/* Header Skeleton */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
 
         {/* Stats Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
-                <div className="ml-4 flex-1">
+            <div key={i} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
                   <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
                   <div className="h-6 bg-gray-200 rounded w-1/3"></div>
                 </div>
+                <div className="w-10 h-10 bg-gray-200 rounded-xl"></div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Filter Tabs Skeleton */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex space-x-8">
               {[...Array(5)].map((_, i) => (
@@ -113,7 +124,7 @@ const MyAssets: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="border border-gray-200 rounded-lg p-6">
+                <div key={i} className="border border-gray-200 rounded-xl p-6">
                   <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
                   <div className="space-y-3">
                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -135,124 +146,151 @@ const MyAssets: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Assets</h1>
-        <p className="text-gray-600">Manage and track your registered assets</p>
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Assets</h1>
+            <p className="text-gray-600">Manage and track your registered assets</p>
+          </div>
+          <div className="flex space-x-3">
+            <button className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+              <FunnelIcon className="w-4 h-4 mr-2" />
+              Filter
+            </button>
+            <a
+              href="/register-asset"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <PlusIcon className="w-4 h-4 mr-2" />
+              Add Asset
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <div className="ml-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
               <p className="text-sm font-medium text-gray-600">Total Assets</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
             </div>
+            <div className="p-3 bg-blue-100 rounded-xl">
+              <ChartBarIcon className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm text-green-600">
+            <span className="font-medium">Active</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-            </div>
-            <div className="ml-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
               <p className="text-sm font-medium text-gray-600">Total Value</p>
-              <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</p>
             </div>
+            <div className="p-3 bg-green-100 rounded-xl">
+              <CurrencyDollarIcon className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm text-green-600">
+            <span className="font-medium">+5.2%</span>
+            <span className="ml-1">this month</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <div className="ml-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
               <p className="text-sm font-medium text-gray-600">Total Tokens</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalTokens.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.totalTokens.toLocaleString()}</p>
             </div>
+            <div className="p-3 bg-purple-100 rounded-xl">
+              <CurrencyDollarIcon className="w-8 h-8 text-purple-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm text-green-600">
+            <span className="font-medium">+12%</span>
+            <span className="ml-1">from last week</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
               <p className="text-sm font-medium text-gray-600">Verified</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.verified}</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.verified}</p>
             </div>
+            <div className="p-3 bg-emerald-100 rounded-xl">
+              <CheckCircleIcon className="w-8 h-8 text-emerald-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm text-green-600">
+            <span className="font-medium">100%</span>
+            <span className="ml-1">success rate</span>
           </div>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex space-x-8">
+          <div className="flex flex-wrap gap-2">
             {[
-              { key: 'all', label: 'All', count: stats.total },
-              { key: 'pending', label: 'Pending', count: stats.pending },
-              { key: 'verified', label: 'Verified', count: stats.verified },
-              { key: 'tokenized', label: 'Tokenized', count: stats.tokenized },
-              { key: 'rejected', label: 'Rejected', count: stats.rejected },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  filter === tab.key
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {tab.label} ({tab.count})
-              </button>
-            ))}
+              { key: 'all', label: 'All', count: stats.total, icon: ChartBarIcon },
+              { key: 'pending', label: 'Pending', count: stats.pending, icon: ClockIcon },
+              { key: 'verified', label: 'Verified', count: stats.verified, icon: CheckCircleIcon },
+              { key: 'tokenized', label: 'Tokenized', count: stats.tokenized, icon: CurrencyDollarIcon },
+              { key: 'rejected', label: 'Rejected', count: stats.rejected, icon: FunnelIcon },
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    filter === tab.key
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {tab.label} ({tab.count})
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <div className="p-6">
           {error && (
-            <div className="text-center py-8">
-              <div className="text-red-500 text-sm">{error}</div>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="text-red-800 text-sm">{error}</div>
             </div>
           )}
 
           {filteredAssets.length === 0 ? (
             <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No assets found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ChartBarIcon className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No assets found</h3>
+              <p className="text-gray-500 mb-6">
                 {filter === 'all' 
                   ? "You haven't registered any assets yet."
                   : `No ${filter} assets found.`
                 }
               </p>
               {filter === 'all' && (
-                <div className="mt-6">
-                  <a
-                    href="/register-asset"
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    Register Your First Asset
-                  </a>
-                </div>
+                <a
+                  href="/register-asset"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  <PlusIcon className="w-5 h-5 mr-2" />
+                  Register Your First Asset
+                </a>
               )}
             </div>
           ) : (

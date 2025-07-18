@@ -17,24 +17,34 @@ import { ThemeProvider as CustomThemeProvider } from "./contexts/ThemeContext";
 const AppContent = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar */}
         <Navigation />
-        <div className="flex-1 md:ml-64">
-          <NetworkStatus />
-          <main className="p-4 md:p-8">
-            <Routes>
-              {/* 用戶端路由 */}
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/register-asset" element={<AssetRegistration />} />
-              <Route path="/my-assets" element={<MyAssets />} />
-              <Route path="/tokens" element={<TokenManagement />} />
-              <Route path="/asset/:id" element={<AssetDetails />} />
-              
-              {/* 管理端路由 */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/verification" element={<VerificationDashboard />} />
-              <Route path="/admin/redemption" element={<RedemptionManagement />} />
-            </Routes>
+        
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Bar */}
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <NetworkStatus />
+          </div>
+          
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="p-6">
+              <Routes>
+                {/* 用戶端路由 */}
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/register-asset" element={<AssetRegistration />} />
+                <Route path="/my-assets" element={<MyAssets />} />
+                <Route path="/tokens" element={<TokenManagement />} />
+                <Route path="/asset/:id" element={<AssetDetails />} />
+                
+                {/* 管理端路由 */}
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/verification" element={<VerificationDashboard />} />
+                <Route path="/admin/redemption" element={<RedemptionManagement />} />
+              </Routes>
+            </div>
           </main>
         </div>
       </div>

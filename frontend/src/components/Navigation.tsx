@@ -10,7 +10,8 @@ import {
   CheckCircleIcon, 
   ArrowPathIcon as RefreshIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  UserCircleIcon
 } from '@heroicons/react/24/outline';
 
 const navItems = [
@@ -25,68 +26,106 @@ const navItems = [
 
 const Navigation: React.FC = () => {
   const { account, disconnect } = useWeb3();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>
       {/* Mobile menu button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-md border"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
       >
-        {isOpen ? (
+        {isMobileMenuOpen ? (
           <XMarkIcon className="w-6 h-6 text-gray-600" />
         ) : (
           <Bars3Icon className="w-6 h-6 text-gray-600" />
         )}
       </button>
 
-      {/* Overlay for mobile */}
-      {isOpen && (
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
-          onClick={() => setIsOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
-      <aside className={`fixed top-0 left-0 h-full w-64 bg-white border-r shadow-md flex flex-col z-20 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-      }`}>
-      <div className="flex items-center justify-center h-20 border-b">
-        <span className="text-2xl font-bold text-blue-600">RWA Platform</span>
-      </div>
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {navItems.map(({ name, path, icon: Icon }) => (
-          <NavLink
-            key={name}
-            to={path}
-            className={({ isActive }) =>
-              `flex items-center px-4 py-2 rounded-lg transition-colors duration-200 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 ${isActive ? 'bg-blue-100 text-blue-700' : ''}`
-            }
-            end={path === '/'}
-          >
-            <Icon className="w-5 h-5 mr-3" />
-            {name}
-          </NavLink>
-        ))}
-      </nav>
-      <div className="px-4 py-4 border-t bg-gray-50 flex flex-col items-center">
-        {account ? (
-          <>
-            <span className="text-xs text-gray-500 mb-1">Connected</span>
-            <span className="font-mono text-sm text-gray-700 mb-2">{account.slice(0, 6)}...{account.slice(-4)}</span>
-            <button
-              onClick={disconnect}
-              className="text-xs text-red-500 hover:underline"
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Logo */}
+        <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">R</span>
+            </div>
+            <span className="text-xl font-bold text-gray-900">RWA Platform</span>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          {navItems.map(({ name, path, icon: Icon }) => (
+            <NavLink
+              key={name}
+              to={path}
+              className={({ isActive }) =>
+                `flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm
+                ${isActive 
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`
+              }
+              end={path === '/'}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
-              Disconnect
-            </button>
-          </>
-        ) : (
-          <span className="text-xs text-gray-400">Not connected</span>
-        )}
-      </div>
-    </aside>
+              <Icon className="w-5 h-5 mr-3" />
+              {name}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* User Profile */}
+        <div className="px-4 py-4 border-t border-gray-200">
+          {account ? (
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                  <UserCircleIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    Connected
+                  </p>
+                  <p className="text-xs text-gray-500 font-mono truncate">
+                    {account.slice(0, 6)}...{account.slice(-4)}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={disconnect}
+                className="mt-3 w-full text-xs text-red-600 hover:text-red-700 font-medium transition-colors"
+              >
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                  <UserCircleIcon className="w-6 h-6 text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Not Connected</p>
+                  <p className="text-xs text-gray-500">Connect your wallet</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </aside>
     </>
   );
 };
