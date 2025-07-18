@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useWeb3 } from '../contexts/Web3Context';
 import { 
@@ -8,7 +8,9 @@ import {
   CurrencyDollarIcon, 
   Cog6ToothIcon as CogIcon, 
   CheckCircleIcon, 
-  ArrowPathIcon as RefreshIcon 
+  ArrowPathIcon as RefreshIcon,
+  Bars3Icon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const navItems = [
@@ -23,9 +25,33 @@ const navItems = [
 
 const Navigation: React.FC = () => {
   const { account, disconnect } = useWeb3();
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <aside className="fixed top-0 left-0 h-full w-64 bg-white border-r shadow-md flex flex-col z-20">
+    <>
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-md border"
+      >
+        {isOpen ? (
+          <XMarkIcon className="w-6 h-6 text-gray-600" />
+        ) : (
+          <Bars3Icon className="w-6 h-6 text-gray-600" />
+        )}
+      </button>
+
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-20"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed top-0 left-0 h-full w-64 bg-white border-r shadow-md flex flex-col z-20 transform transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
       <div className="flex items-center justify-center h-20 border-b">
         <span className="text-2xl font-bold text-blue-600">RWA Platform</span>
       </div>
@@ -61,6 +87,7 @@ const Navigation: React.FC = () => {
         )}
       </div>
     </aside>
+    </>
   );
 };
 

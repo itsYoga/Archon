@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
-import { AssetRegistrationForm } from '../types/web3';
+import type { AssetRegistrationForm } from '../types/web3';
+import { ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 
 const AssetRegistration: React.FC = () => {
   const { account, isConnected, contracts } = useWeb3();
@@ -210,16 +211,31 @@ const AssetRegistration: React.FC = () => {
 
           {/* File Upload */}
           <div>
-            <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Asset Documentation
             </label>
-            <input
-              type="file"
-              id="file"
-              onChange={handleFileUpload}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+            <label
+              htmlFor="file-upload"
+              className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 border border-gray-300 p-4 flex justify-center items-center"
+            >
+              <div className="text-center">
+                <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <span className="mt-2 block text-sm text-gray-900">
+                  {formData.metadata ? formData.metadata : 'Upload a file'}
+                </span>
+                <span className="mt-1 block text-xs text-gray-500">
+                  PDF, DOC, DOCX, JPG, JPEG, PNG up to 10MB
+                </span>
+              </div>
+              <input 
+                id="file-upload" 
+                name="file" 
+                type="file" 
+                className="sr-only" 
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              />
+            </label>
             <p className="mt-1 text-sm text-gray-500">
               Upload supporting documents (deed, certificate, etc.)
             </p>
@@ -242,13 +258,16 @@ const AssetRegistration: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   Registering...
-                </div>
+                </>
               ) : (
                 'Register Asset'
               )}

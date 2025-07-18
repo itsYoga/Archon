@@ -155,134 +155,142 @@ const TokenManagement: React.FC = () => {
         <p className="text-gray-600">Manage your RWA tokens and redemption requests</p>
       </div>
 
-      {/* Token Balance */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Token Balance</h2>
-            <p className="text-4xl font-bold text-green-600 mt-2">
-              {tokenBalance.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">RWA Tokens</p>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Token Balance and Tokenized Assets */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Token Balance */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Token Balance</h2>
+                <p className="text-4xl font-bold text-green-600 mt-2">
+                  {tokenBalance.toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">RWA Tokens</p>
+              </div>
+              <div className="p-4 bg-green-100 rounded-lg">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="p-4 bg-green-100 rounded-lg">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
+
+          {/* Tokenized Assets */}
+          <div className="bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">Tokenized Assets</h3>
+            </div>
+            
+            <div className="p-6">
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
+
+              {tokenizedAssets.length === 0 ? (
+                <div className="text-center py-8">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No tokenized assets</h3>
+                  <p className="mt-1 text-sm text-gray-500">You don't have any tokenized assets yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tokenizedAssets.map((asset) => (
+                    <div key={asset.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900">{asset.assetType}</h4>
+                          <p className="text-sm text-gray-500">ID: {asset.assetId}</p>
+                        </div>
+                        <button
+                          onClick={() => openRedemptionModal(asset)}
+                          className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
+                        >
+                          Request Redemption
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">Asset Value:</span>
+                          <span className="ml-2 font-medium">${Number(asset.value).toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Tokens:</span>
+                          <span className="ml-2 font-medium text-green-600">
+                            {tokenBalance.toLocaleString()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Tokenized:</span>
+                          <span className="ml-2">{formatDate(asset.verifiedAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tokenized Assets */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Tokenized Assets</h3>
-        </div>
-        
-        <div className="p-6">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+        {/* Right Column - Redemption Requests */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">Redemption Requests</h3>
             </div>
-          )}
-
-          {tokenizedAssets.length === 0 ? (
-            <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No tokenized assets</h3>
-              <p className="mt-1 text-sm text-gray-500">You don't have any tokenized assets yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {tokenizedAssets.map((asset) => (
-                <div key={asset.id} className="border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900">{asset.assetType}</h4>
-                      <p className="text-sm text-gray-500">ID: {asset.assetId}</p>
-                    </div>
-                    <button
-                      onClick={() => openRedemptionModal(asset)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
-                    >
-                      Request Redemption
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Asset Value:</span>
-                      <span className="ml-2 font-medium">${Number(asset.value).toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Tokens:</span>
-                      <span className="ml-2 font-medium text-green-600">
-                        {tokenBalance.toLocaleString()}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Tokenized:</span>
-                      <span className="ml-2">{formatDate(asset.verifiedAt)}</span>
-                    </div>
-                  </div>
+            
+            <div className="p-6">
+              {redemptionRequests.length === 0 ? (
+                <div className="text-center py-8">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No redemption requests</h3>
+                  <p className="mt-1 text-sm text-gray-500">You haven't submitted any redemption requests yet.</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Redemption Requests */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Redemption Requests</h3>
-        </div>
-        
-        <div className="p-6">
-          {redemptionRequests.length === 0 ? (
-            <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No redemption requests</h3>
-              <p className="mt-1 text-sm text-gray-500">You haven't submitted any redemption requests yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {redemptionRequests.map((request, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Redemption Request #{index + 1}
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        Requested: {formatDate(request.requestTime)}
-                      </p>
+              ) : (
+                <div className="space-y-4">
+                  {redemptionRequests.map((request, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900">
+                            Request #{index + 1}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(request.requestTime)}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(request.approved, request.processed)}`}>
+                          {getStatusLabel(request.approved, request.processed)}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">Amount:</span>
+                          <span className="ml-2 font-medium">{request.tokenAmount.toLocaleString()} tokens</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Status:</span>
+                          <span className="ml-2">
+                            {request.processed ? 'Completed' : request.approved ? 'Approved' : 'Pending Review'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(request.approved, request.processed)}`}>
-                      {getStatusLabel(request.approved, request.processed)}
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Token Amount:</span>
-                      <span className="ml-2 font-medium">{request.tokenAmount.toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Status:</span>
-                      <span className="ml-2">
-                        {request.processed ? 'Completed' : request.approved ? 'Approved' : 'Pending Review'}
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
