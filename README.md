@@ -1,6 +1,17 @@
 # Archon - Real-World Asset (RWA) Tokenization Platform
 
-A comprehensive DeFi platform for tokenizing real-world assets with identity verification, asset management, and redemption capabilities.
+A comprehensive DeFi platform for tokenizing real-world assets with identity verification, asset management, and redemption capabilities. Features role-based access control, automated deployment, and a modern React frontend.
+
+## ✨ Features
+
+- **🔐 Role-Based Access Control**: ADMIN, VERIFIER, and MINTER roles with granular permissions
+- **🏠 Asset Tokenization**: Convert real-world assets into tradeable tokens
+- **👤 Identity Verification**: KYC and identity management system
+- **💰 Admin Tokenization**: Admins can specify custom token amounts during asset tokenization
+- **🔄 Automated Deployment**: One-command setup with automatic role grants and frontend sync
+- **📱 Modern UI**: React frontend with Tailwind CSS and responsive design
+- **🔗 Web3 Integration**: MetaMask wallet connection with real-time account switching
+- **⚡ Real-Time Updates**: Wallet state updates immediately on account/network changes
 
 ## 🚀 Quick Start
 
@@ -22,7 +33,7 @@ cd frontend && npm install && cd ..
 
 ### Automated Deployment & Setup
 
-The platform includes automated scripts for easy deployment and frontend synchronization:
+The platform includes fully automated scripts for deployment and configuration:
 
 #### 1. Start Hardhat Node
 ```bash
@@ -31,15 +42,17 @@ npm run start
 npx hardhat node
 ```
 
-#### 2. Deploy Contracts & Setup Permissions (One Command)
+#### 2. Deploy Contracts & Setup Everything (One Command)
 ```bash
 npm run deploy:setup
 ```
-This command:
-- Deploys all smart contracts
-- Sets up role permissions automatically
-- Updates frontend contract addresses and ABIs
-- Configures the complete system
+This command automatically:
+- ✅ Deploys all smart contracts
+- ✅ Grants ADMIN_ROLE to AssetManager on AssetRegistry
+- ✅ Grants MINTER_ROLE to AssetManager on RwaToken  
+- ✅ Grants ADMIN_ROLE to AssetManager on RwaToken
+- ✅ Updates frontend contract addresses and ABIs
+- ✅ Configures the complete system ready for use
 
 #### 3. Start Frontend
 ```bash
@@ -69,28 +82,46 @@ cd frontend && npm run dev
 ## 🏗️ Architecture
 
 ### Smart Contracts
-- **IdentityRegistry**: KYC and identity management
-- **AssetRegistry**: Asset registration and verification
-- **RwaToken**: ERC20 token for RWA representation
-- **AssetManager**: Business logic and asset lifecycle management
+- **IdentityRegistry**: KYC and identity management with role-based access
+- **AssetRegistry**: Asset registration and verification with ADMIN_ROLE controls
+- **RwaToken**: ERC20 token for RWA representation with MINTER_ROLE and ADMIN_ROLE
+- **AssetManager**: Business logic and asset lifecycle management with custom tokenization
 
 ### Frontend
-- **React + TypeScript**: Modern UI framework
-- **Vite**: Fast build tool
-- **Tailwind CSS**: Utility-first styling
-- **Ethers.js**: Web3 integration
-- **React Router**: Navigation
+- **React + TypeScript**: Modern UI framework with type safety
+- **Vite**: Fast build tool and development server
+- **Tailwind CSS**: Utility-first styling with responsive design
+- **Ethers.js**: Web3 integration with real-time wallet state
+- **React Router v6**: Client-side navigation with protected routes
+- **Context API**: Global state management for Web3 connection
+
+## 🔐 Role-Based Access Control
+
+The platform implements granular role-based permissions:
+
+### Roles
+- **ADMIN_ROLE**: Full system control, can grant/revoke roles, manage assets
+- **VERIFIER_ROLE**: Can verify and approve asset registrations
+- **MINTER_ROLE**: Can mint new tokens during asset tokenization
+
+### Permission Flow
+1. **Asset Registration**: Users register real-world assets
+2. **Verification**: VERIFIER_ROLE holders verify asset details
+3. **Tokenization**: ADMIN_ROLE holders can tokenize with custom amounts
+4. **Trading**: Tokens become tradeable on secondary markets
+5. **Redemption**: Token holders can redeem for underlying assets
 
 ## 🔄 Automated Workflow
 
-The platform includes an intelligent update system that automatically:
+The platform includes intelligent automation that handles:
 
-1. **Deploys contracts** with proper initialization
-2. **Sets up permissions** between contracts
-3. **Updates frontend files**:
+1. **Smart Contract Deployment**: All contracts deployed with proper initialization
+2. **Role Setup**: Automatic role grants between contracts for seamless operation
+3. **Frontend Synchronization**: 
    - Copies latest contract ABIs
    - Updates contract addresses
-   - Ensures frontend-backend synchronization
+   - Ensures frontend-backend consistency
+4. **Permission Management**: No manual role configuration needed
 
 ### Manual Updates
 If you need to update frontend files manually:
@@ -109,9 +140,10 @@ Tests cover:
 - Contract deployment and initialization
 - Role management and permissions
 - Asset registration and verification
-- Token minting and transfers
+- Token minting and transfers with custom amounts
 - Redemption workflows
 - Edge cases and error conditions
+- Access control validation
 
 ## 🌐 Network Configuration
 
@@ -134,14 +166,29 @@ Import these private keys into MetaMask for testing:
 ```
 Archon/
 ├── contracts/           # Smart contracts
+│   ├── IdentityRegistry.sol
+│   ├── AssetRegistry.sol
+│   ├── RwaToken.sol
+│   └── AssetManager.sol
 ├── scripts/            # Deployment and utility scripts
+│   ├── deploy.ts       # Main deployment script
+│   ├── updateFrontend.ts
+│   └── grantRoles.ts   # Role management scripts
 ├── test/              # Test files
 ├── frontend/          # React frontend
 │   ├── src/
 │   │   ├── contracts/ # Auto-generated contract files
 │   │   ├── components/
+│   │   │   ├── WalletConnector.tsx
+│   │   │   └── AssetCard.tsx
 │   │   ├── pages/
-│   │   └── contexts/
+│   │   │   ├── AdminDashboard.tsx
+│   │   │   ├── AssetDetails.tsx
+│   │   │   └── MyAssets.tsx
+│   │   ├── contexts/
+│   │   │   └── Web3Context.tsx
+│   │   └── App.tsx
+│   └── package.json
 └── artifacts/         # Compiled contracts
 ```
 
@@ -157,6 +204,16 @@ Archon/
 2. Deploy contracts: `npm run deploy:setup`
 3. Start frontend: `npm run frontend`
 4. Connect MetaMask to localhost:8545
+
+### Role Management
+The system automatically handles role grants during deployment. For manual role management:
+```bash
+# Grant VERIFIER_ROLE to an account
+npx hardhat run scripts/grantVerifierRole.ts --network localhost
+
+# Grant ADMIN_ROLE to AssetManager
+npx hardhat run scripts/grantAdminRoleToManager.ts --network localhost
+```
 
 ## 🚨 Troubleshooting
 
@@ -176,6 +233,12 @@ Archon/
 1. Add Hardhat localhost network manually
 2. Import test account with private key
 3. Ensure network is selected in MetaMask
+4. Check that wallet state updates on account switch
+
+### Permission Errors
+1. Ensure roles are properly granted (automatic with `npm run deploy:setup`)
+2. Check that you're using the correct account for your role
+3. Verify contract addresses are up to date
 
 ## 📄 License
 
@@ -188,3 +251,12 @@ ISC License
 3. Make changes
 4. Run tests
 5. Submit pull request
+
+## 🔮 Roadmap
+
+- [ ] Multi-chain support
+- [ ] Advanced asset verification workflows
+- [ ] Integration with external KYC providers
+- [ ] Mobile app development
+- [ ] Advanced analytics dashboard
+- [ ] Automated compliance reporting
