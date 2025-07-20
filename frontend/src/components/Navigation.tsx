@@ -13,6 +13,7 @@ import {
   XMarkIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
+import logo from '../assets/logo.png';
 
 const userNavItems = [
   { name: 'Dashboard', path: '/', icon: HomeIcon },
@@ -97,10 +98,8 @@ const Navigation: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">RWA Platform</span>
+            <img src={logo} alt="Archon Logo" className="w-10 h-10 rounded-lg shadow" />
+            <span className="text-xl font-bold text-gray-900">Archon</span>
           </div>
         </div>
 

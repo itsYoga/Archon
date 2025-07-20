@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div className="mb-6 lg:mb-0">
-            <h1 className="text-3xl lg:text-4xl font-bold mb-3">Welcome to RWA Platform</h1>
+            <h1 className="text-3xl lg:text-4xl font-bold mb-3">Welcome to Archon</h1>
             <p className="text-blue-100 text-lg mb-4">
               Tokenize and manage your real-world assets on the blockchain
             </p>
