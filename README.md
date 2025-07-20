@@ -13,6 +13,32 @@ A comprehensive DeFi platform for tokenizing real-world assets with identity ver
 - **🔗 Web3 Integration**: MetaMask wallet connection with real-time account switching
 - **⚡ Real-Time Updates**: Wallet state updates immediately on account/network changes
 
+## 📸 Screenshots
+
+### Main Dashboard
+![Main Dashboard](frontend/src/assets/Screenshots/Screenshot_Mainpage.png)
+*Modern dashboard with hero section, stats cards, and quick actions*
+
+### Asset Registration
+![Asset Registration](frontend/src/assets/Screenshots/Screenshot_Register_Asset.png)
+*User-friendly asset registration form with auto-generated unique asset IDs*
+
+### Admin Dashboard
+![Admin Dashboard](frontend/src/assets/Screenshots/Screenshot_Admin.png)
+*Admin panel with asset verification, tokenization controls, and management tools*
+
+### Admin Asset Management
+![Admin Asset Management](frontend/src/assets/Screenshots/Screenshot_Admin_all_assets.png)
+*Complete asset overview with verification status and management options*
+
+### Tokenization Process
+![Tokenization Process](frontend/src/assets/Screenshots/Screenshot_Admin_tokenize.png)
+*Admin tokenization modal with custom token amount selection*
+
+### Token Dashboard
+![Token Dashboard](frontend/src/assets/Screenshots/Screenshot_Token_dashboard.png)
+*Token management interface for tracking and managing RWA tokens*
+
 ## 🚀 Quick Start
 
 ### Prerequisites
