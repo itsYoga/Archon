@@ -24,6 +24,7 @@ interface Asset {
   assetType: string;
   assetId: string;
   value: string | bigint;
+  tag: string;
   metadata: string;
   status: number; // 0: PENDING, 1: VERIFIED, 2: REJECTED, 3: TOKENIZED, 4: REDEEMED
   createdAt: number;
@@ -86,6 +87,7 @@ const AdminDashboard: React.FC = () => {
             assetType: asset.assetType,
             assetId: asset.assetId,
             value: asset.value, // keep as string or BigInt
+            tag: asset.tag, // <-- include tag
             metadata: asset.metadata,
             status: Number(asset.status),
             createdAt: Number(asset.createdAt),
@@ -164,9 +166,11 @@ const AdminDashboard: React.FC = () => {
   };
 
   // Mark asset as tokenized with custom token amount
-  const openTokenizeModal = (assetId: number, defaultAmount: string) => {
+  const openTokenizeModal = (assetId: number, defaultAmountWei: string) => {
+    // Convert default from wei to tokens for display
+    const defaultTokenAmount = ethers.formatUnits(defaultAmountWei, 18);
     setTokenizeAssetId(assetId);
-    setTokenAmount(defaultAmount);
+    setTokenAmount(defaultTokenAmount);
     setShowTokenizeModal(true);
     setTokenizeError(null);
   };
@@ -185,7 +189,9 @@ const AdminDashboard: React.FC = () => {
     try {
       setActionLoading(tokenizeAssetId);
       setTokenizeError(null);
-      const tx = await contracts.assetManager.tokenizeAsset(tokenizeAssetId, tokenAmount);
+      // Convert token amount from tokens to wei before sending to contract
+      const tokenAmountWei = ethers.parseUnits(tokenAmount, 18);
+      const tx = await contracts.assetManager.tokenizeAsset(tokenizeAssetId, tokenAmountWei.toString());
       await tx.wait();
       closeTokenizeModal();
       await loadData();
@@ -582,6 +588,7 @@ const AdminDashboard: React.FC = () => {
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tag</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -593,6 +600,7 @@ const AdminDashboard: React.FC = () => {
                           <tr key={asset.id}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.id}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset.assetType}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{asset.tag || <span className='text-gray-400 italic'>No tag</span>}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.owner}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ethers.formatEther(asset.value).toLocaleString()}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -603,7 +611,10 @@ const AdminDashboard: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               {asset.status === 1 && (
                                 <button
-                                  onClick={() => openTokenizeModal(asset.id, asset.value.toString())}
+                                  onClick={() => {
+                                    // asset.value is in wei (1e18), so use asset.value directly for 1:1 USD:token
+                                    openTokenizeModal(asset.id, asset.value.toString());
+                                  }}
                                   className="text-blue-600 hover:text-blue-900"
                                   disabled={actionLoading === asset.id}
                                 >
@@ -630,7 +641,8 @@ const AdminDashboard: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Token Amount</label>
               <input
                 type="number"
-                min="1"
+                min="0.000000000000000001"
+                step="any"
                 value={tokenAmount}
                 onChange={e => setTokenAmount(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"

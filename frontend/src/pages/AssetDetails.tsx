@@ -51,6 +51,7 @@ const AssetDetails: React.FC = () => {
             verifiedAt: Number(assetData.verifiedAt ?? assetData[8]),
             verifier: assetData.verifier ?? assetData[9],
             verificationProof: assetData.verificationProof ?? assetData[10],
+            tag: assetData.tag ?? assetData[11], // Assuming tag is at index 11
           });
         }
         setError(null);
@@ -90,6 +91,9 @@ const AssetDetails: React.FC = () => {
       </div>
       <div className="mb-2">
         <span className="text-gray-600">Asset Type:</span> <span className="font-medium">{asset.assetType}</span>
+      </div>
+      <div className="mb-2">
+        <span className="text-gray-600">Asset Tag:</span> <span className="font-medium">{asset.tag || <span className='text-gray-400 italic'>No tag</span>}</span>
       </div>
       <div className="mb-2">
         <span className="text-gray-600">Asset ID:</span> <span className="font-mono">{asset.assetId}</span>

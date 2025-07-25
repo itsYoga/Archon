@@ -20,6 +20,7 @@ const userNavItems = [
   { name: 'Register Asset', path: '/register-asset', icon: PlusCircleIcon },
   { name: 'My Assets', path: '/my-assets', icon: CollectionIcon },
   { name: 'Tokens', path: '/tokens', icon: CurrencyDollarIcon },
+  { name: 'Token Transfer', path: '/transfer', icon: CurrencyDollarIcon },
 ];
 
 const adminNavItems = [

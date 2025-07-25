@@ -51,6 +51,7 @@ export interface AssetRegistrationForm {
   assetType: string;
   externalAssetId: string;
   value: number;
+  tag: string;
   metadata: string;
 }
 

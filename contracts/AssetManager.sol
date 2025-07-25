@@ -65,6 +65,7 @@ contract AssetManager is AccessControlEnumerable {
         string memory assetType,
         string memory externalAssetId,
         uint256 value,
+        string memory tag,
         string memory metadata
     ) external returns (uint256) {
         require(supportedAssetTypes[assetType], "Asset type not supported");
@@ -75,6 +76,7 @@ contract AssetManager is AccessControlEnumerable {
             assetType,
             externalAssetId,
             value,
+            tag,
             metadata
         );
         

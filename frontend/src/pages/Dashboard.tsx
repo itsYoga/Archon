@@ -11,6 +11,7 @@ import {
   GlobeAltIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
+import CryptoRates from '../components/CryptoRates';
 
 const Dashboard: React.FC = () => {
   const { account } = useWeb3();
@@ -94,6 +95,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Crypto Exchange Rates */}
+      <CryptoRates />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

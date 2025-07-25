@@ -1,15 +1,16 @@
 import { ethers } from "hardhat";
+import addresses from "../frontend/src/contracts/addresses.json";
 
 async function main() {
   // The account that needs admin roles
-  const userAddress = "0x5C7Ae89ef9EC589960c30F25b85beEA783826039";
+  const userAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
   
   console.log(`Granting admin roles to ${userAddress}...`);
 
   // Get contract instances
-  const assetRegistry = await ethers.getContractAt("AssetRegistry", "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6");
-  const rwaToken = await ethers.getContractAt("RwaToken", "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318");
-  const assetManager = await ethers.getContractAt("AssetManager", "0x610178dA211FEF7D417bC0e6FeD39F05609AD788");
+  const assetRegistry = await ethers.getContractAt("AssetRegistry", addresses.AssetRegistry);
+  const rwaToken = await ethers.getContractAt("RwaToken", addresses.RwaToken);
+  const assetManager = await ethers.getContractAt("AssetManager", addresses.AssetManager);
 
   try {
     // Grant roles to AssetRegistry

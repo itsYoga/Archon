@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Asset, AssetStatus } from '../types/web3';
+import { ethers } from "ethers";
 
 interface AssetCardProps {
   asset: Asset;
@@ -120,7 +121,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, tokenAmount, onViewDetails
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Tokens:</span>
               <span className="text-sm font-medium text-green-600">
-                {tokenAmount.toLocaleString()}
+                {ethers.formatUnits(tokenAmount.toString(), 18)}
               </span>
             </div>
           )}

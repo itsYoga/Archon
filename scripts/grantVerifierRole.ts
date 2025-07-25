@@ -3,7 +3,7 @@ import addresses from "../frontend/src/contracts/addresses.json";
 
 async function main() {
   // The address to grant the role to (update as needed)
-  const verifierAddress = "0x5C7Ae89ef9EC589960c30F25b85beEA783826039";
+  const verifierAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
   // AssetRegistry contract address
   const assetRegistryAddress = addresses.AssetRegistry;
   // VERIFIER_ROLE hash

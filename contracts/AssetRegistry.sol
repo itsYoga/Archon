@@ -23,6 +23,7 @@ contract AssetRegistry is AccessControlEnumerable {
         string assetType;        // 資產類型：REAL_ESTATE, STOCK, COMMODITY, etc.
         string assetId;          // 外部資產識別碼
         uint256 value;           // 資產價值（以最小單位計）
+        string tag;              // 用戶自定義標籤/名稱
         string metadata;         // IPFS hash 或其他元數據
         AssetStatus status;      // 資產狀態
         uint256 createdAt;
@@ -43,7 +44,7 @@ contract AssetRegistry is AccessControlEnumerable {
     mapping(address => uint256[]) public ownerAssets;
     mapping(string => uint256) public externalAssetToId; // 外部資產ID映射
 
-    event AssetRegistered(uint256 indexed assetId, address indexed owner, string assetType, uint256 value);
+    event AssetRegistered(uint256 indexed assetId, address indexed owner, string assetType, uint256 value, string tag);
     event AssetVerified(uint256 indexed assetId, address indexed verifier, bool isValid);
     event AssetTokenized(uint256 indexed assetId, uint256 tokenAmount);
     event AssetRedeemed(uint256 indexed assetId, address indexed redeemer);
@@ -61,6 +62,7 @@ contract AssetRegistry is AccessControlEnumerable {
         string memory assetType,
         string memory externalAssetId,
         uint256 value,
+        string memory tag,
         string memory metadata
     ) external returns (uint256) {
         require(bytes(assetType).length > 0, "Asset type cannot be empty");
@@ -77,6 +79,7 @@ contract AssetRegistry is AccessControlEnumerable {
             assetType: assetType,
             assetId: externalAssetId,
             value: value,
+            tag: tag,
             metadata: metadata,
             status: AssetStatus.PENDING,
             createdAt: block.timestamp,
@@ -89,7 +92,7 @@ contract AssetRegistry is AccessControlEnumerable {
         ownerAssets[msg.sender].push(newAssetId);
         externalAssetToId[externalAssetId] = newAssetId;
 
-        emit AssetRegistered(newAssetId, msg.sender, assetType, value);
+        emit AssetRegistered(newAssetId, msg.sender, assetType, value, tag);
         return newAssetId;
     }
 

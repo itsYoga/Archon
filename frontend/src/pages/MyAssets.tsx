@@ -16,7 +16,7 @@ import { ethers } from "ethers";
 const MyAssets: React.FC = () => {
   const { account, isConnected, contracts } = useWeb3();
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [tokenBalances, setTokenBalances] = useState<number[]>([]);
+  const [tokenBalances, setTokenBalances] = useState<bigint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
@@ -50,6 +50,7 @@ const MyAssets: React.FC = () => {
               assetType: asset.assetType,
               assetId: asset.assetId,
               value: asset.value,
+              tag: asset.tag, // <-- include tag
               metadata: asset.metadata,
               status: Number(asset.status),
               createdAt: Number(asset.createdAt),
@@ -65,9 +66,9 @@ const MyAssets: React.FC = () => {
           assetIds.map(async (assetId: number) => {
             try {
               const balance = await contracts.rwaToken.getTokensForAsset(assetId);
-              return Number(balance);
+              return BigInt(balance);
             } catch (err) {
-              return 0; // No tokens for this asset
+              return 0n; // No tokens for this asset
             }
           })
         );
@@ -128,11 +129,10 @@ const MyAssets: React.FC = () => {
     }, 0);
     const totalTokens = tokenBalances.reduce((sum, balance, idx) => {
       if (assets[idx] && assets[idx].status !== 2) {
-        const tokenBalance = typeof balance === 'bigint' ? Number(balance) : Number(balance);
-        return sum + tokenBalance;
+        return sum + balance;
       }
       return sum;
-    }, 0);
+    }, 0n);
     return { ...stats, totalValue, totalTokens };
   };
 
@@ -270,7 +270,7 @@ const MyAssets: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Tokens</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.totalTokens.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900">{ethers.formatUnits(stats.totalTokens.toString(), 18)}</p>
             </div>
             <div className="p-3 bg-purple-100 rounded-xl">
               <CurrencyDollarIcon className="w-8 h-8 text-purple-600" />
@@ -352,6 +352,7 @@ const MyAssets: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 mb-1">{asset.assetType}</h3>
                       <p className="text-xs text-gray-500 font-mono">ID: {asset.assetId}</p>
+                      <p className="text-xs text-gray-700 font-medium">{asset.tag || <span className='text-gray-400 italic'>No tag</span>}</p>
                     </div>
                     {filter === 'rejected' && (
                       <button
@@ -383,6 +384,12 @@ const MyAssets: React.FC = () => {
                     <p className="text-sm text-gray-600">Value:</p>
                     <p className="text-lg font-bold text-gray-900">${ethers.formatEther(asset.value).toLocaleString()}</p>
                   </div>
+                  {tokenBalances[idx] !== undefined && (
+                    <div className="mb-2">
+                      <p className="text-sm text-gray-600">Tokens:</p>
+                      <p className="text-lg font-bold text-green-600">{ethers.formatUnits(tokenBalances[idx].toString(), 18)}</p>
+                    </div>
+                  )}
                   <div className="mb-2">
                     <p className="text-xs text-gray-500">Registered: {new Date(asset.createdAt * 1000).toLocaleDateString()}</p>
                   </div>

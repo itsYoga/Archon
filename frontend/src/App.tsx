@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import VerificationDashboard from "./pages/VerificationDashboard";
 import RedemptionManagement from "./pages/RedemptionManagement";
 import AssetDetails from "./pages/AssetDetails";
+import TokenTransfer from "./pages/TokenTransfer";
 import { ToastProvider } from "./contexts/ToastContext";
 import { ThemeProvider as CustomThemeProvider } from "./contexts/ThemeContext";
 
@@ -38,6 +39,7 @@ const AppContent = () => {
                 <Route path="/register-asset" element={<AssetRegistration />} />
                 <Route path="/my-assets" element={<MyAssets />} />
                 <Route path="/tokens" element={<TokenManagement />} />
+                <Route path="/transfer" element={<TokenTransfer />} />
                 <Route path="/asset/:id" element={<AssetDetails />} />
                 
                 {/* 管理端路由 - 需要管理員權限 */}

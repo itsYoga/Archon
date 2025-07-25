@@ -37,6 +37,10 @@ describe("AssetRegistry", function () {
     
     await assetRegistry.grantRole(VERIFIER_ROLE, verifier.address);
     await assetRegistry.grantRole(ADMIN_ROLE, admin.address);
+
+    await assetRegistry.grantRole(ADMIN_ROLE, owner.address);
+    await assetRegistry.grantRole(ADMIN_ROLE, admin.address);
+    await assetRegistry.grantRole(VERIFIER_ROLE, verifier.address);
   });
 
   describe("Role Management", function () {
@@ -55,7 +59,7 @@ describe("AssetRegistry", function () {
       const VERIFIER_ROLE = await assetRegistry.VERIFIER_ROLE();
       await expect(
         assetRegistry.connect(user1).grantRole(VERIFIER_ROLE, user2.address)
-      ).to.be.reverted;
+      ).to.be.revertedWith(/AccessControl/);
     });
   });
 
@@ -64,6 +68,7 @@ describe("AssetRegistry", function () {
       assetType: "REAL_ESTATE",
       externalAssetId: "PROP_001",
       value: ethers.parseEther("1000000"),
+      tag: "Test Asset",
       metadata: "ipfs://QmHash123"
     };
 
@@ -72,6 +77,7 @@ describe("AssetRegistry", function () {
         assetData.assetType,
         assetData.externalAssetId,
         assetData.value,
+        assetData.tag,
         assetData.metadata
       );
 
@@ -97,6 +103,7 @@ describe("AssetRegistry", function () {
         assetData.assetType,
         assetData.externalAssetId,
         assetData.value,
+        assetData.tag,
         assetData.metadata
       );
 
@@ -109,10 +116,11 @@ describe("AssetRegistry", function () {
           assetData.assetType,
           assetData.externalAssetId,
           assetData.value,
+          assetData.tag,
           assetData.metadata
         )
       ).to.emit(assetRegistry, "AssetRegistered")
-        .withArgs(1n, user1.address, assetData.assetType, assetData.value);
+        .withArgs(1n, user1.address, assetData.assetType, assetData.value, assetData.tag);
     });
 
     it("should not allow duplicate external asset IDs", async function () {
@@ -120,6 +128,7 @@ describe("AssetRegistry", function () {
         assetData.assetType,
         assetData.externalAssetId,
         assetData.value,
+        assetData.tag,
         assetData.metadata
       );
 
@@ -128,6 +137,7 @@ describe("AssetRegistry", function () {
           assetData.assetType,
           assetData.externalAssetId,
           assetData.value,
+          assetData.tag,
           assetData.metadata
         )
       ).to.be.revertedWith("Asset already registered");
@@ -142,6 +152,7 @@ describe("AssetRegistry", function () {
         "REAL_ESTATE",
         "PROP_002",
         ethers.parseEther("500000"),
+        "Test Asset 2",
         "ipfs://test"
       );
       assetId = await assetRegistry.getTotalAssets();
@@ -166,7 +177,7 @@ describe("AssetRegistry", function () {
     it("should not allow non-verifier to verify assets", async function () {
       await expect(
         assetRegistry.connect(user1).verifyAsset(assetId, true, "Approved")
-      ).to.be.reverted;
+      ).to.be.revertedWith(/AccessControl/);
     });
 
     it("should emit AssetVerified event", async function () {
@@ -199,6 +210,7 @@ describe("AssetRegistry", function () {
         "REAL_ESTATE",
         "PROP_003",
         ethers.parseEther("1000000"),
+        "Test Asset 3",
         "ipfs://test"
       );
       assetId = await assetRegistry.getTotalAssets();
@@ -215,7 +227,7 @@ describe("AssetRegistry", function () {
     it("should not allow non-admin to mark asset as tokenized", async function () {
       await expect(
         assetRegistry.connect(user1).markAsTokenized(assetId)
-      ).to.be.reverted;
+      ).to.be.revertedWith(/AccessControl/);
     });
 
     it("should not allow tokenization of non-verified asset", async function () {
@@ -224,6 +236,7 @@ describe("AssetRegistry", function () {
         "REAL_ESTATE",
         "PROP_004",
         ethers.parseEther("500000"),
+        "Test Asset 4",
         "ipfs://test"
       );
       const unverifiedAssetId = await assetRegistry.getTotalAssets();
@@ -249,6 +262,7 @@ describe("AssetRegistry", function () {
         "REAL_ESTATE",
         "PROP_005",
         ethers.parseEther("1000000"),
+        "Test Asset 5",
         "ipfs://test"
       );
       assetId = await assetRegistry.getTotalAssets();
@@ -266,7 +280,7 @@ describe("AssetRegistry", function () {
     it("should not allow non-admin to mark asset as redeemed", async function () {
       await expect(
         assetRegistry.connect(user1).markAsRedeemed(assetId)
-      ).to.be.reverted;
+      ).to.be.revertedWith(/AccessControl/);
     });
 
     it("should not allow redemption of non-tokenized asset", async function () {
@@ -275,6 +289,7 @@ describe("AssetRegistry", function () {
         "REAL_ESTATE",
         "PROP_006",
         ethers.parseEther("500000"),
+        "Test Asset 6",
         "ipfs://test"
       );
       const nonTokenizedAssetId = await assetRegistry.getTotalAssets();
@@ -296,9 +311,9 @@ describe("AssetRegistry", function () {
   describe("Asset Queries", function () {
     beforeEach(async function () {
       // Register multiple assets
-      await assetRegistry.connect(user1).registerAsset("REAL_ESTATE", "PROP_007", ethers.parseEther("100000"), "ipfs://1");
-      await assetRegistry.connect(user2).registerAsset("COMMODITY", "GOLD_001", ethers.parseEther("200000"), "ipfs://2");
-      await assetRegistry.connect(user1).registerAsset("STOCK", "STOCK_001", ethers.parseEther("300000"), "ipfs://3");
+      await assetRegistry.connect(user1).registerAsset("REAL_ESTATE", "PROP_007", ethers.parseEther("100000"), "Tag 7", "ipfs://1");
+      await assetRegistry.connect(user2).registerAsset("COMMODITY", "GOLD_001", ethers.parseEther("200000"), "Gold Tag", "ipfs://2");
+      await assetRegistry.connect(user1).registerAsset("STOCK", "STOCK_001", ethers.parseEther("300000"), "Stock Tag", "ipfs://3");
     });
 
     it("should return correct asset count", async function () {
@@ -364,6 +379,7 @@ describe("AssetRegistry", function () {
         "REAL_ESTATE",
         "PROP_008",
         ethers.parseEther("1000000"),
+        "Test Asset 8",
         "ipfs://test"
       );
       assetId = await assetRegistry.getTotalAssets();
