@@ -286,3 +286,39 @@ ISC License
 - [ ] Mobile app development
 - [ ] Advanced analytics dashboard
 - [ ] Automated compliance reporting
+
+## 🪙 Token Redemption Flow
+
+The redemption process for RWA tokens is a secure, multi-step workflow:
+
+1. **Request Redemption**: Token holders initiate a redemption request via the frontend. This creates an on-chain request but does not burn tokens yet.
+2. **Approve Redemption**: An admin reviews and approves the request. Still, tokens are not burned at this stage.
+3. **Process Redemption**: Only when the admin processes the redemption (calls `processRedemption`), the tokens are actually burned and the asset is considered redeemed.
+
+> **Note:** Only the `processRedemption` step will actually burn tokens. Users may need to refresh their wallet or the frontend to see updated balances after redemption.
+
+## ⚠️ Frontend Balance Refresh
+
+After redemption or token transfers, the frontend may not immediately reflect the updated token balance. If you notice a stale balance, try:
+- Manually refreshing the page
+- Disconnecting and reconnecting your wallet
+
+For best UX, the frontend periodically fetches balances, but manual refresh may be needed in some cases.
+
+## 🛡️ Automated Role Grant Script
+
+The script `scripts/grantRwaTokenAdminRole.ts` is provided to automate the granting of `ADMIN_ROLE` on the RwaToken contract to the AssetManager contract. This ensures that the AssetManager can perform all necessary admin operations on the token contract without manual intervention.
+
+Run with:
+```bash
+npx hardhat run scripts/grantRwaTokenAdminRole.ts --network localhost
+```
+
+## 🔄 Token Transfer Page
+
+The frontend includes a dedicated Token Transfer page, allowing users to transfer their RWA tokens to other addresses directly from the UI. This feature supports standard ERC20 transfers and provides transaction feedback.
+
+## 🧑‍💼 KYC Workflow
+
+- **Off-chain KYC Application:** Users submit KYC information through the frontend. This data is processed off-chain for privacy and compliance.
+- **On-chain KYC Status:** The smart contracts expose functions to check if an address is KYC-verified. The frontend displays verification status and restricts actions accordingly.
